@@ -1,6 +1,6 @@
 # Reality Defender SDK for Python
 
-[![codecov](https://codecov.io/gh/Reality-Defender/eng-sdk/graph/badge.svg?flag=python&token=P98RNVB21M)](https://codecov.io/gh/Reality-Defender/eng-sdk)
+[![codecov](https://codecov.io/gh/Reality-Defender/realitydefender-sdk-python/graph/badge.svg?token=S64OCTEW6B)](https://codecov.io/gh/Reality-Defender/realitydefender-sdk-python)
 
 A Python SDK for the Reality Defender API to detect deepfakes and manipulated media.
 
