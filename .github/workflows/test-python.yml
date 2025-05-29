@@ -3,12 +3,8 @@ name: Test Python SDK
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'python/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'python/**'
 
 jobs:
   test-python-sdk:
