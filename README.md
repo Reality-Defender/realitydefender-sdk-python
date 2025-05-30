@@ -18,80 +18,90 @@ poetry add realitydefender
 
 First, you need to obtain an API key from the [Reality Defender Platform](https://app.realitydefender.ai).
 
-### Basic Usage
+### Asynchronous Approach
+
+This approach uses direct polling to wait for the analysis results.
 
 ```python
+import asyncio
 from realitydefender import RealityDefender
 
-# Initialize the SDK with your API key
-reality_defender = RealityDefender(
-    api_key="your-api-key",
-    # Optional: custom base URL if needed
-    # base_url="https://api.dev.realitydefender.xyz"
-)
+async def main():
+    # Initialize the SDK with your API key
+    print("Initializing Reality Defender SDK...")
+    rd = RealityDefender({
+        "api_key": "your-api-key"
+    })
 
-# Upload a file for analysis
-response = reality_defender.upload(file_path="/path/to/your/file.jpg")
-request_id = response["request_id"]
-
-# Callback-based approach to get results
-def on_result(result):
-    print(f"Status: {result['status']}")
-    print(f"Score: {result['score']}")
-    
-    # List model results
-    for model in result["models"]:
-        print(f"{model['name']}: {model['status']} ({model['score']})")
-
-def on_error(error):
-    print(f"Error: {error['message']} ({error['code']})")
-
-reality_defender.get_result_async(request_id, on_result, on_error)
-
-# Alternative: Poll for results synchronously
-# result = reality_defender.get_result(request_id)
-```
-
-### Synchronous Approach
-
-As an alternative to the callback-based approach, you can use synchronous polling:
-
-```python
-from realitydefender import RealityDefender
-
-# Initialize the SDK with your API key
-reality_defender = RealityDefender(
-    api_key="your-api-key"
-)
-
-def detect_media():
     try:
         # Upload a file for analysis
-        response = reality_defender.upload(file_path="/path/to/your/file.jpg")
+        print("Uploading file for analysis...")
+        response = await rd.upload({"file_path": "/path/to/your/file.jpg"})
         request_id = response["request_id"]
-        
-        # Get results using the requestId (polls until completion)
-        result = reality_defender.get_result(request_id)
-        
+        print(f"File uploaded successfully. Request ID: {request_id}")
+
+        # Get results by polling until completion
+        print("Waiting for analysis results...")
+        result = await rd.get_result(request_id)
+        print("Analysis complete!")
+
         # Process the results
+        print("\nResults:")
         print(f"Status: {result['status']}")
         print(f"Score: {result['score']}")
-        
-        # List model results
-        for model in result["models"]:
-            print(f"{model['name']}: {model['status']} ({model['score']})")
-        
-        return result
-    except Exception as error:
-        print(f"Error: {str(error)}")
-        raise
 
-# Call the function
-try:
-    result = detect_media()
-    print("Detection completed successfully")
-except Exception:
-    print("Detection failed")
+        # List model results
+        print("\nModel details:")
+        for model in result["models"]:
+            print(f"{model['name']}: {model['status']} (Score: {model['score']})")
+    finally:
+        # Always clean up when done
+        print("Cleaning up resources...")
+        await rd.cleanup()
+        print("Done!")
+
+# Run the async function
+asyncio.run(main())
+```
+
+### Event-Based Approach
+
+This approach uses event handlers to process results when they become available.
+
+```python
+import asyncio
+from realitydefender import RealityDefender
+
+async def main():
+    # Initialize the SDK
+    print("Initializing Reality Defender SDK...")
+    rd = RealityDefender({
+        "api_key": "your-api-key"
+    })
+
+    try:
+        # Set up event handlers
+        print("Setting up event handlers...")
+        rd.on("result", lambda result: print(f"Result received: {result['status']} (Score: {result['score']})"))
+        rd.on("error", lambda error: print(f"Error occurred: {error.message}"))
+
+        # Upload and start polling
+        print("Uploading file for analysis...")
+        response = await rd.upload({"file_path": "/path/to/your/file.jpg"})
+        request_id = response["request_id"]
+        print(f"File uploaded successfully. Request ID: {request_id}")
+        
+        print("Starting to poll for results...")
+        await rd.poll_for_results(response["request_id"])
+        print("Polling complete!")
+    finally:
+        # Clean up when done
+        print("Cleaning up resources...")
+        await rd.cleanup()
+        print("Done!")
+
+# Run the async function
+asyncio.run(main())
 ```
 
 ## Architecture
@@ -106,60 +116,65 @@ The SDK is designed with a modular architecture for better maintainability and t
 
 ## API Reference
 
+The Reality Defender SDK uses asynchronous operations throughout.
+
 ### Initialize the SDK
 
 ```python
-reality_defender = RealityDefender(
-    api_key=str,               # Required: Your API key
-    base_url=str,              # Optional: Custom API base URL
-    timeout=int                # Optional: Default request timeout in seconds
-)
+rd = RealityDefender({
+    "api_key": str,               # Required: Your API key
+    "base_url": str,              # Optional: Custom API base URL
+    "timeout": int                # Optional: Default request timeout in ms
+})
 ```
 
 ### Upload Media for Analysis
 
 ```python
-response = reality_defender.upload(
-    file_path=str,             # Required: Path to the file to analyze
-    polling_interval=int,      # Optional: Interval in seconds to poll for results (default: 5)
-    timeout=int                # Optional: Timeout in seconds for polling (default: 300)
-)
+# Must be called from within an async function
+response = await rd.upload({
+    "file_path": str,             # Required: Path to the file to analyze
+})
 ```
 
 Returns: `{"request_id": str, "media_id": str}`
 
-### Get Results for a Request
+### Get Results via Polling
 
 ```python
-result = reality_defender.get_result(request_id)
+# Must be called from within an async function
+# This will poll until the analysis is complete
+result = await rd.get_result(request_id)
 ```
 
-Returns a dictionary:
+Returns a dictionary with detection results:
 
 ```python
 {
-    "status": str,       # Overall status (e.g., "ARTIFICIAL", "AUTHENTIC", etc.)
-    "score": float,      # Overall confidence score (0-100)
+    "status": str,       # Overall status (e.g., "ARTIFICIAL", "AUTHENTIC")
+    "score": float,      # Overall confidence score (0-1)
     "models": [          # Array of model-specific results
         {
             "name": str,     # Model name
             "status": str,   # Model-specific status
-            "score": float   # Model-specific score
+            "score": float   # Model-specific score (0-1)
         }
     ]
 }
 ```
 
-### Asynchronous Results
+### Event-Based Results
 
 ```python
-reality_defender.get_result_async(
-    request_id=str,              # Required: Request ID from upload
-    on_result=callable,          # Required: Callback for results
-    on_error=callable,           # Required: Callback for errors
-    polling_interval=int,        # Optional: Polling interval in seconds
-    timeout=int                  # Optional: Timeout in seconds
-)
+# Set up event handlers before polling
+rd.on("result", callback_function)  # Called when results are available
+rd.on("error", error_callback_function)  # Called if an error occurs
+
+# Start polling (must be called from within an async function)
+await rd.poll_for_results(request_id)
+
+# Clean up when done (must be called from within an async function)
+await rd.cleanup()
 ```
 
 ## Error Handling
