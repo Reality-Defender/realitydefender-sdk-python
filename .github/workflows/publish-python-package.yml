@@ -33,7 +33,7 @@ jobs:
     - name: Validate package
       run: |
         pip install -e ".[dev]"
-        python -c "import realitydefender; print(f'Building version: {realitydefender.__version__}')"
+        python -c "from realitydefender.__version__ import __version__; print(f'Building version: {__version__}')"
     
     - name: Build package
       run: |
