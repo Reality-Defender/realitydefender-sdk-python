@@ -64,8 +64,13 @@ async def upload_to_signed_url(
         # Note: we'd use a PUT request, but our HttpClient doesn't support it yet
         # So we'll use an external implementation for now
         import aiohttp
+        import ssl
+        import certifi
 
-        async with aiohttp.ClientSession() as session:
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        conn = aiohttp.TCPConnector(ssl=ssl_context)
+
+        async with aiohttp.ClientSession(connector=conn) as session:
             async with session.put(
                 signed_url, data=content, headers={"Content-Type": content_type}
             ) as response:
