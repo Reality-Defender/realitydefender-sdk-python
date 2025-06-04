@@ -73,20 +73,3 @@ Demonstrates how to analyze video files:
 - Event-based result notifications
 
 **Required files:** `test_video.mp4` (place in the `images/` directory)
-
-## Usage
-
-Run any example using Python:
-
-```bash
-python basic_usage.py
-```
-
-Some examples accept command-line arguments:
-
-```bash
-python basic_usage.py --events
-python sync_usage.py --one-step
-```
-
-See the individual example files for more details on available options. 
