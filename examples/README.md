@@ -13,7 +13,6 @@ Before running these examples, make sure to:
 
 2. Install the SDK in development mode:
    ```bash
-   cd python
    uv venv && source .venv/bin/activate && uv pip install -e .
    ```
 
