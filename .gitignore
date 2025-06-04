@@ -70,3 +70,8 @@ dmypy.json
 
 # Lock files shouldn't be committed for libraries.
 *.lock
+
+examples/images/*
+!examples/images/.gitkeep
+examples/videos/*
+!examples/videos/.gitkeep
