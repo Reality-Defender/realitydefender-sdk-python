@@ -60,26 +60,18 @@ async def upload_to_signed_url(
         # Get file information
         _, content, content_type = get_file_info(file_path)
 
+        session = await client.ensure_session()
+
         # Upload directly to the signed URL
-        # Note: we'd use a PUT request, but our HttpClient doesn't support it yet
-        # So we'll use an external implementation for now
-        import aiohttp
-        import ssl
-        import certifi
-
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
-        conn = aiohttp.TCPConnector(ssl=ssl_context)
-
-        async with aiohttp.ClientSession(connector=conn) as session:
-            async with session.put(
-                signed_url, data=content, headers={"Content-Type": content_type}
-            ) as response:
-                if response.status >= 400:
-                    text = await response.text()
-                    raise RealityDefenderError(
-                        f"Upload failed with status {response.status}: {text}",
-                        "upload_failed",
-                    )
+        async with session.put(
+            signed_url, data=content, headers={"Content-Type": content_type}
+        ) as response:
+            if response.status >= 400:
+                text = await response.text()
+                raise RealityDefenderError(
+                    f"Upload failed with status {response.status}: {text}",
+                    "upload_failed",
+                )
     except RealityDefenderError:
         raise
     except Exception as e:
