@@ -2,6 +2,11 @@ name: Format, check, and test Python SDK
 
 on:
   workflow_call:
+    inputs:
+      is-release:
+        default: false
+        type: boolean
+        description: Whether this is a release run or not.
 
 jobs:
   test-python-sdk:
@@ -41,4 +46,4 @@ jobs:
           files: ./coverage.xml
           flags: python
           name: python-sdk-codecov
-          fail_ci_if_error: true
+          fail_ci_if_error: ${{ inputs.is-release }}
