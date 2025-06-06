@@ -15,7 +15,7 @@ on:
         description: Whether this is a release package ready to be published or not.
 
 jobs:
-  build:
+  build-publish-python-sdk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

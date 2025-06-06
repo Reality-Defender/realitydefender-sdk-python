@@ -9,7 +9,7 @@ on:
         description: Whether this is a release run or not.
 
 jobs:
-  test-python-sdk:
+  check-format-test-python-sdk:
     runs-on: ubuntu-latest
     strategy:
       matrix:
