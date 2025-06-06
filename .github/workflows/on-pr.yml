@@ -1,4 +1,4 @@
-name: on-pr.yml
+name: On PR
 on:
   pull_request:
     types: [opened, synchronize]
