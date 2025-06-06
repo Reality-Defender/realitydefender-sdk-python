@@ -1,0 +1,16 @@
+name: On Merge Main
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check-format-test:
+    uses: ./.github/workflows/check-format-test.yml
+
+  build-publish:
+    uses: ./.github/workflows/build-publish.yml
+    with:
+      is-release: 'false'

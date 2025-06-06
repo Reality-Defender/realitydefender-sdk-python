@@ -1,0 +1,9 @@
+name: on-pr.yml
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  check-format-test:
+    uses: ./.github/workflows/check-format-test.yml

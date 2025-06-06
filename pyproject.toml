@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "realitydefender"
-version = "0.1.0"
+version = "0"
 description = "SDK for the Reality Defender deepfake detection API"
 readme = "README.md"
 authors = [

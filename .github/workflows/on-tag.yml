@@ -1,0 +1,15 @@
+name: On Tag
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  check-format-test:
+    uses: ./.github/workflows/check-format-test.yml
+
+  build-publish:
+    uses: ./.github/workflows/build-publish.yml
+    with:
+      is-release: 'true'
