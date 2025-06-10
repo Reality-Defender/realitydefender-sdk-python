@@ -27,7 +27,7 @@ jobs:
       - name: Create nightly version, if applicable.
         if: ${{ inputs.is-release == false }}
         run: |
-          echo "SDK_VERSION=${{ env.SDK_VERSION }}+git$(date +'%Y%m%d').$(git rev-parse --short HEAD)-${{ github.GITHUB_RUN_ATTEMPT }}" >> $GITHUB_ENV
+          echo "SDK_VERSION=${{ env.SDK_VERSION }}+git$(date +'%Y%m%d').$(git rev-parse --short HEAD)-${{ github.run_attempt }}" >> $GITHUB_ENV
 
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@v5
