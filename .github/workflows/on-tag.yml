@@ -9,9 +9,9 @@ jobs:
   check-format-test:
     uses: ./.github/workflows/check-format-test.yml
     with:
-      is-release: 'true'
+      is-release: true
 
   build-publish:
     uses: ./.github/workflows/build-publish.yml
     with:
-      is-release: 'true'
+      is-release: true

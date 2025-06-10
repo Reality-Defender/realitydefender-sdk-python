@@ -12,5 +12,3 @@ jobs:
 
   build-publish:
     uses: ./.github/workflows/build-publish.yml
-    with:
-      is-release: 'false'
