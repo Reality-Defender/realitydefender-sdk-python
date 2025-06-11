@@ -1,0 +1,60 @@
+name: Build and publish Python SDK
+on:
+  workflow_call:
+    inputs:
+      is-release:
+        default: false
+        type: boolean
+        description: Whether this is a release package ready to be published or not.
+
+  workflow_dispatch:
+    inputs:
+      is-release:
+        default: false
+        type: boolean
+        description: Whether this is a release package ready to be published or not.
+
+jobs:
+  build-publish-python-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag version
+        run: |
+          echo "SDK_VERSION=$(git describe --tags --abbrev=0 | cut -c2-)" >> $GITHUB_ENV
+
+      - name: Create nightly version, if applicable.
+        if: ${{ inputs.is-release == false }}
+        run: |
+          echo "SDK_VERSION=${{ env.SDK_VERSION }}+git$(date +'%Y%m%d').$(git rev-parse --short HEAD)-${{ github.run_attempt }}" >> $GITHUB_ENV
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: 3.11
+
+      - name: Set the package version.
+        run: |
+          uv version ${{ env.SDK_VERSION }}
+
+      - name: Build
+        run: uv build
+
+      - name: Share artifacts.
+        uses: actions/upload-artifact@v4
+        with:
+          name: "realitydefender-sdk-python-${{ env.SDK_VERSION }}"
+          path: |
+            dist/**/*.tar.gz
+            dist/**/*.whl
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Publish
+        if: ${{ inputs.is-release == true }}
+        run: |
+          uv publish --token ${{ secrets.PYPI_API_TOKEN }}

@@ -13,7 +13,6 @@ Before running these examples, make sure to:
 
 2. Install the SDK in development mode:
    ```bash
-   cd python
    uv venv && source .venv/bin/activate && uv pip install -e .
    ```
 
@@ -27,6 +26,12 @@ Demonstrates basic asynchronous usage of the SDK, including:
 
 **Required files:** `test_image.jpg` (place in the `images/` directory)
 
+**Command-line options:**
+```bash
+python basic_usage.py             # Process file in an asynchronous manner.
+python basic_usage.py --events    # Process file in an asynchronous manner using the event based client.
+```
+
 ### `sync_usage.py`
 Demonstrates synchronous usage of the SDK without dealing with asyncio:
 - Synchronous upload and detection
@@ -34,6 +39,13 @@ Demonstrates synchronous usage of the SDK without dealing with asyncio:
 - Synchronous callbacks for polling
 
 **Required files:** `test_image.jpg` (place in the `images/` directory)
+
+**Command-line options:**
+```bash
+python sync_usage.py               # Process file in a synchronous manner.
+python sync_usage.py --one-step    # Process file in a synchronous manner, running one-step detection example.
+python sync_usage.py --callbacks   # Process file in an synchronous manner, running synchronous callbacks example.
+```
 
 ### `batch_processing.py`
 Demonstrates how to process multiple files concurrently:
@@ -61,20 +73,3 @@ Demonstrates how to analyze video files:
 - Event-based result notifications
 
 **Required files:** `test_video.mp4` (place in the `images/` directory)
-
-## Usage
-
-Run any example using Python:
-
-```bash
-python basic_usage.py
-```
-
-Some examples accept command-line arguments:
-
-```bash
-python basic_usage.py --events
-python sync_usage.py --one-step
-```
-
-See the individual example files for more details on available options. 

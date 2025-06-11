@@ -8,12 +8,7 @@ import re
 
 # Add the src directory to the Python path for autodoc
 sys.path.insert(0, os.path.abspath('../../src'))
-
-# Read the version from __version__.py
-with open(os.path.join('../../src', 'realitydefender', '__version__.py'), 'r') as f:
-    version_file = f.read()
-    version_match = re.search(r"__version__ = ['\"]([^'\"]*)['\"]", version_file)
-    version = version_match.group(1) if version_match else '0.0.0'
+version = '0.1.0'
 
 # Project information
 project = 'Reality Defender SDK'

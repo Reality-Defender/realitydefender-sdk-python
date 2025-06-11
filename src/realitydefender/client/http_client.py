@@ -6,6 +6,8 @@ import json
 from typing import Any, Dict, Optional, Tuple, TypedDict
 
 import aiohttp
+import ssl
+import certifi
 
 from ..core.constants import DEFAULT_API_ENDPOINT
 from ..errors import RealityDefenderError
@@ -42,7 +44,11 @@ class HttpClient:
             Active aiohttp.ClientSession
         """
         if self.session is None or self.session.closed:
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
+            conn = aiohttp.TCPConnector(ssl=ssl_context)
+
             self.session = aiohttp.ClientSession(
+                connector=conn,
                 headers={
                     "X-API-KEY": self.api_key,
                     "Accept": "application/json",
