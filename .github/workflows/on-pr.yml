@@ -7,3 +7,5 @@ on:
 jobs:
   check-format-test:
     uses: ./.github/workflows/check-format-test.yml
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}

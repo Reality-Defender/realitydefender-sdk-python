@@ -9,6 +9,9 @@ on:
 jobs:
   check-format-test:
     uses: ./.github/workflows/check-format-test.yml
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   build-publish:
+    needs: check-format-test
     uses: ./.github/workflows/build-publish.yml
