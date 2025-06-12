@@ -7,6 +7,10 @@ on:
         default: false
         type: boolean
         description: Whether this is a release run or not.
+    secrets:
+      codecov-token:
+        required: true
+        description: A token required by Codecov to upload code coverage to their platform.
 
 jobs:
   check-format-test-python-sdk:
@@ -44,7 +48,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.codecov-token }}
           files: ./coverage.xml
           flags: python
           name: python-sdk-codecov

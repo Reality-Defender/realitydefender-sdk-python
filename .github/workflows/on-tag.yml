@@ -10,8 +10,13 @@ jobs:
     uses: ./.github/workflows/check-format-test.yml
     with:
       is-release: true
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   build-publish:
+    needs: check-format-test
     uses: ./.github/workflows/build-publish.yml
     with:
       is-release: true
+    secrets:
+      pypi-api-token: ${{ secrets.PYPI_API_TOKEN }}
