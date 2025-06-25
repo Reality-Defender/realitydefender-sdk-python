@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Video detection example for the Reality Defender SDK
 This example shows how to use the SDK for analyzing videos for deepfakes.
@@ -20,7 +22,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 async def detect_video_deepfake() -> None:
@@ -38,7 +40,7 @@ async def detect_video_deepfake() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Define the video file path - you'll need to provide your own video file
         video_path = os.path.abspath(
@@ -57,7 +59,7 @@ async def detect_video_deepfake() -> None:
         # Upload video for analysis
         print(f"Uploading video: {video_path}")
         start_time = time.time()
-        upload_result = await client.upload({"file_path": video_path})
+        upload_result = await client.upload(file_path=video_path)
         upload_duration = time.time() - start_time
 
         print(f"Upload successful in {upload_duration:.2f} seconds!")

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Synchronous usage example for the Reality Defender SDK
 This example shows how to use the SDK without dealing with asyncio.
@@ -19,7 +21,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 def basic_sync_example() -> None:
@@ -37,7 +39,7 @@ def basic_sync_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis using the synchronous method
         file_path = os.path.abspath(
@@ -52,9 +54,9 @@ def basic_sync_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = client.upload_sync({"file_path": file_path})
+        upload_result = client.upload_sync(file_path=file_path)
 
-        print(f"Upload successful!")
+        print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
         print(f"Media ID: {upload_result['media_id']}")
 
@@ -97,7 +99,7 @@ def one_step_detection_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Define the path to the file
         file_path = os.path.abspath(
@@ -170,7 +172,7 @@ def sync_callback_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis using the synchronous method
         file_path = os.path.abspath(
@@ -185,7 +187,7 @@ def sync_callback_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = client.upload_sync({"file_path": file_path})
+        upload_result = client.upload_sync(file_path=file_path)
 
         print(f"Upload successful! Request ID: {upload_result['request_id']}")
 

@@ -27,8 +27,10 @@ def mock_client() -> MagicMock:
 @pytest_asyncio.fixture
 async def sdk_instance(mock_client: MagicMock) -> RealityDefender:
     """Create a patched SDK instance with a mock client"""
-    with patch("realitydefender.create_http_client", return_value=mock_client):
-        sdk = RealityDefender({"api_key": "test-api-key"})
+    with patch(
+        "realitydefender.reality_defender.create_http_client", return_value=mock_client
+    ):
+        sdk = RealityDefender(api_key="test-api-key")
         sdk.client = mock_client
         return sdk
 
@@ -37,14 +39,16 @@ async def sdk_instance(mock_client: MagicMock) -> RealityDefender:
 async def test_sdk_initialization() -> None:
     """Test SDK initialization"""
     # Test with valid API key
-    with patch("realitydefender.create_http_client") as mock_create_client:
-        sdk = RealityDefender({"api_key": "test-api-key"})
+    with patch(
+        "realitydefender.reality_defender.create_http_client"
+    ) as mock_create_client:
+        sdk = RealityDefender(api_key="test-api-key")
         mock_create_client.assert_called_once()
         assert sdk.api_key == "test-api-key"
 
     # Test with missing API key
     with pytest.raises(RealityDefenderError) as exc_info:
-        RealityDefender({})
+        RealityDefender(api_key="")
     assert exc_info.value.code == "unauthorized"
 
 
@@ -53,15 +57,20 @@ async def test_upload(sdk_instance: RealityDefender, mock_client: MagicMock) -> 
     """Test file upload functionality"""
     # Setup mock response
     mock_client.post.return_value = {
-        "data": {"request_id": "test-request-id", "media_id": "test-media-id"}
+        "requestId": "test-request-id",
+        "mediaId": "test-media-id",
+        "response": {"signedUrl": "https://signed-url.com"},
     }
 
     # Test with valid options
-    with patch(
-        "realitydefender.detection.upload.get_file_info",
-        return_value=("test.jpg", b"file_content", "image/jpeg"),
+    with (
+        patch(
+            "realitydefender.detection.upload.get_file_info",
+            return_value=("test.jpg", b"file_content", "image/jpeg"),
+        ),
+        patch("realitydefender.detection.upload.upload_to_signed_url"),
     ):
-        result = await sdk_instance.upload({"file_path": "/path/to/test.jpg"})
+        result = await sdk_instance.upload(file_path="/path/to/test.jpg")
         assert result == {"request_id": "test-request-id", "media_id": "test-media-id"}
 
     # Test with error
@@ -70,48 +79,58 @@ async def test_upload(sdk_instance: RealityDefender, mock_client: MagicMock) -> 
     )
 
     with pytest.raises(RealityDefenderError) as exc_info:
-        await sdk_instance.upload({"file_path": "/path/to/test.jpg"})
+        await sdk_instance.upload(file_path="/path/to/test.jpg")
     assert exc_info.value.code in ["upload_failed", "invalid_file"]
 
 
 @pytest.mark.asyncio
-async def test_get_result(sdk_instance: RealityDefender, mock_client: MagicMock) -> None:
+async def test_get_result(
+    sdk_instance: RealityDefender, mock_client: MagicMock
+) -> None:
     """Test getting detection results"""
     # Setup mock response
     mock_client.get.return_value = {
-        "data": {
+        "resultsSummary": {
             "status": "ARTIFICIAL",
-            "score": 95.5,
-            "models": [{"name": "model1", "status": "ARTIFICIAL", "score": 97.3}],
-        }
+            "metadata": {"finalScore": 95.5},
+        },
+        "models": [{"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3}],
     }
 
     # Test getting results
     result = await sdk_instance.get_result("test-request-id")
     assert result["status"] == "ARTIFICIAL"
-    assert result["score"] == 95.5
+    assert result["score"] == 0.955
     assert len(result["models"]) == 1
     assert result["models"][0]["name"] == "model1"
 
 
 @pytest.mark.asyncio
-async def test_poll_for_results(sdk_instance: RealityDefender, mock_client: MagicMock) -> None:
+async def test_poll_for_results(
+    sdk_instance: RealityDefender, mock_client: MagicMock
+) -> None:
     """Test polling for results"""
     # Setup mock to return 'ANALYZING' first, then 'ARTIFICIAL'
     mock_client.get.side_effect = [
-        {"data": {"status": "ANALYZING", "score": None, "models": []}},
         {
-            "data": {
+            "resultsSummary": {"status": "ANALYZING", "metadata": {"finalScore": None}},
+            "models": [],
+        },
+        {
+            "resultsSummary": {
                 "status": "ARTIFICIAL",
-                "score": 95.5,
-                "models": [{"name": "model1", "status": "ARTIFICIAL", "score": 97.3}],
-            }
+                "metadata": {"finalScore": 95.5},
+            },
+            "models": [
+                {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3},
+                {"name": "model1", "status": "NOT_APPLICABLE", "finalScore": 0},
+            ],
         },
     ]
 
     # Mock the emit method
     mock_emit = MagicMock()
-    with patch.object(sdk_instance, 'emit', mock_emit):
+    with patch.object(sdk_instance, "emit", mock_emit):
         # Test polling
         with patch("asyncio.sleep", AsyncMock()):
             task = sdk_instance.poll_for_results(
@@ -124,21 +143,23 @@ async def test_poll_for_results(sdk_instance: RealityDefender, mock_client: Magi
             "result",
             {
                 "status": "ARTIFICIAL",
-                "score": 95.5,
-                "models": [{"name": "model1", "status": "ARTIFICIAL", "score": 97.3}],
+                "score": 0.955,
+                "models": [{"name": "model1", "status": "ARTIFICIAL", "score": 0.973}],
             },
         )
 
 
 @pytest.mark.asyncio
-async def test_poll_for_results_error(sdk_instance: RealityDefender, mock_client: MagicMock) -> None:
+async def test_poll_for_results_error(
+    sdk_instance: RealityDefender, mock_client: MagicMock
+) -> None:
     """Test polling with errors"""
     # Set up error to be emitted
     mock_client.get.side_effect = RealityDefenderError("Not found", "not_found")
 
     # Mock the emit method
     mock_emit = MagicMock()
-    with patch.object(sdk_instance, 'emit', mock_emit):
+    with patch.object(sdk_instance, "emit", mock_emit):
         # Test polling with not_found error
         with patch("asyncio.sleep", AsyncMock()):
             with patch("realitydefender.core.constants.DEFAULT_MAX_ATTEMPTS", 2):
@@ -158,28 +179,33 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
     """Test direct function usage"""
     # Setup mock response for upload
     mock_client.post.return_value = {
-        "data": {"request_id": "test-request-id", "media_id": "test-media-id"}
+        "requestId": "test-request-id",
+        "mediaId": "test-media-id",
+        "response": {"signedUrl": "https://signed-url.com"},
     }
 
     # Test direct upload function
-    with patch(
-        "realitydefender.detection.upload.get_file_info",
-        return_value=("test.jpg", b"file_content", "image/jpeg"),
+    with (
+        patch(
+            "realitydefender.detection.upload.get_file_info",
+            return_value=("test.jpg", b"file_content", "image/jpeg"),
+        ),
+        patch("realitydefender.detection.upload.upload_to_signed_url"),
     ):
-        result = await upload_file(mock_client, {"file_path": "/path/to/test.jpg"})
+        result = await upload_file(mock_client, file_path="/path/to/test.jpg")
         assert result == {"request_id": "test-request-id", "media_id": "test-media-id"}
 
     # Setup mock response for get_result
     mock_client.get.return_value = {
-        "data": {
+        "resultsSummary": {
             "status": "AUTHENTIC",
-            "score": 12.3,
-            "models": [{"name": "model1", "status": "AUTHENTIC", "score": 8.1}],
-        }
+            "metadata": {"finalScore": 12.3},
+        },
+        "models": [{"name": "model1", "status": "AUTHENTIC", "finalScore": 8.1}],
     }
 
     # Test direct get_detection_result function
-    result = await get_detection_result(mock_client, "test-request-id")
-    assert result["status"] == "AUTHENTIC"
-    assert result["score"] == 12.3
-    assert len(result["models"]) == 1
+    detection_result = await get_detection_result(mock_client, "test-request-id")
+    assert detection_result["status"] == "AUTHENTIC"
+    assert abs((detection_result["score"] or 0) - 0.123) < 0.0001
+    assert len(detection_result["models"]) == 1

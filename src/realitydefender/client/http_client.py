@@ -52,7 +52,7 @@ class HttpClient:
                 headers={
                     "X-API-KEY": self.api_key,
                     "Accept": "application/json",
-                }
+                },
             )
         return self.session
 

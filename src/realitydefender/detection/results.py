@@ -2,13 +2,17 @@
 Detection results retrieval and processing
 """
 
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, Dict, TypeVar
 
-from ..client.http_client import HttpClient
-from ..core.constants import API_PATHS, DEFAULT_MAX_ATTEMPTS, DEFAULT_POLLING_INTERVAL
-from ..errors import RealityDefenderError
-from ..types import DetectionResult, GetResultOptions
-from ..utils.async_utils import sleep
+from realitydefender.client.http_client import HttpClient
+from realitydefender.core.constants import (
+    API_PATHS,
+    DEFAULT_MAX_ATTEMPTS,
+    DEFAULT_POLLING_INTERVAL,
+)
+from realitydefender.errors import RealityDefenderError
+from realitydefender.types import DetectionResult, ModelResult
+from realitydefender.utils.async_utils import sleep
 
 # Generic type for the HTTP client
 ClientType = TypeVar("ClientType", bound=HttpClient)
@@ -47,25 +51,6 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     Returns:
         Simplified detection result
     """
-    # Handle responses from tests which may have a different format (with data wrapper)
-    if "data" in response and isinstance(response["data"], dict):
-        data = response["data"]
-        # If the test response has a simple structure with direct status/score, use it
-        if "status" in data:
-            # Replace FAKE with ARTIFICIAL in response
-            status = "ARTIFICIAL" if data.get("status") == "FAKE" else data.get("status", "UNKNOWN")
-
-            # Replace FAKE with ARTIFICIAL in models
-            models = data.get("models", [])
-            for model in models:
-                if model.get("status") == "FAKE":
-                    model["status"] = "ARTIFICIAL"
-
-            return {
-                "status": status,
-                "score": data.get("score"),
-                "models": models,
-            }
 
     # Handle regular API responses
     if "resultsSummary" in response:
@@ -92,17 +77,13 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
         models_data = response.get("models", [])
 
         # Format models
-        models = []
+        models: list[ModelResult] = []
         for model in models_data:
+            if model.get("status") == "NOT_APPLICABLE":
+                continue
+
             # Normalize model score to 0-1 range
-            model_score = model.get("finalScore")
-            if model_score is not None:
-                try:
-                    model_score = float(model_score)
-                    if model_score > 1:
-                        model_score = model_score / 100.0
-                except (ValueError, TypeError):
-                    model_score = None
+            model_score = float(model.get("finalScore") or 0) / 100.0
 
             # Replace FAKE with ARTIFICIAL in model status
             model_status = model.get("status", "UNKNOWN")
@@ -124,7 +105,10 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
 
 
 async def get_detection_result(
-    client: ClientType, request_id: str, options: Optional[GetResultOptions] = None
+    client: ClientType,
+    request_id: str,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    polling_interval: int = DEFAULT_POLLING_INTERVAL,
 ) -> DetectionResult:
     """
     Get the detection result for a specific request
@@ -132,7 +116,8 @@ async def get_detection_result(
     Args:
         client: HTTP client for API requests
         request_id: The request ID to get results for
-        options: Optional parameters for polling
+        max_attempts: Maximum number of attempts to get results
+        polling_interval: How long to wait between attempts
 
     Returns:
         Detection result with status and scores
@@ -142,12 +127,6 @@ async def get_detection_result(
     """
     if not request_id:
         raise RealityDefenderError("request_id is required", "not_found")
-
-    if options is None:
-        options = {}
-
-    max_attempts = options.get("max_attempts", DEFAULT_MAX_ATTEMPTS)
-    polling_interval = options.get("polling_interval", DEFAULT_POLLING_INTERVAL)
 
     attempts = 0
 

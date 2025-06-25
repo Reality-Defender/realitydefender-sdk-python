@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Test script to verify the wait-until-complete behavior for results.
 """
@@ -29,7 +31,7 @@ async def test_wait_for_result() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis
         file_path = os.path.abspath(
@@ -44,9 +46,9 @@ async def test_wait_for_result() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = await client.upload({"file_path": file_path})
+        upload_result = await client.upload(file_path=file_path)
 
-        print(f"Upload successful!")
+        print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
         print(f"Media ID: {upload_result['media_id']}")
 
@@ -58,10 +60,8 @@ async def test_wait_for_result() -> None:
         # to ensure we wait until the result is complete
         result = await client.get_result(
             upload_result["request_id"],
-            {
-                "polling_interval": 3000,  # 3 seconds between polls
-                "max_attempts": 100,  # Up to 5 minutes total wait time
-            },
+            polling_interval=3000,  # 3 seconds between polls
+            max_attempts=100,  # Up to 5 minutes total wait time
         )
 
         elapsed_time = time.time() - start_time
@@ -72,9 +72,9 @@ async def test_wait_for_result() -> None:
 
         # Format score as a percentage if it exists
         if result["score"] is not None:
-            print(f"Score: {result['score']:.4f} ({result['score']*100:.1f}%)")
+            print(f"Score: {result['score']:.4f} ({result['score'] * 100:.1f}%)")
         else:
-            print(f"Score: None")
+            print("Score: None")
 
         # Print model results, filtering out NOT_APPLICABLE ones
         print("\nModel Results (only applicable models):")
@@ -85,7 +85,7 @@ async def test_wait_for_result() -> None:
         for model in applicable_models:
             score_display = "None"
             if model["score"] is not None:
-                score_display = f"{model['score']:.4f} ({model['score']*100:.1f}%)"
+                score_display = f"{model['score']:.4f} ({model['score'] * 100:.1f}%)"
             print(f"  - {model['name']}: {model['status']} (Score: {score_display})")
 
     except RealityDefenderError as e:
