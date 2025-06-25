@@ -207,5 +207,5 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
     # Test direct get_detection_result function
     detection_result = await get_detection_result(mock_client, "test-request-id")
     assert detection_result["status"] == "AUTHENTIC"
-    assert abs(detection_result["score"] - 0.123) < 0.0001
+    assert abs((detection_result["score"] or 0) - 0.123) < 0.0001
     assert len(detection_result["models"]) == 1

@@ -4,7 +4,7 @@ Main RealityDefender class for interacting with the Reality Defender API
 
 import asyncio
 import os
-from typing import Any, Callable, Optional, cast
+from typing import Any, Callable, Coroutine, Optional, cast, TypeVar
 
 from .client import create_http_client
 from .core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT
@@ -19,6 +19,7 @@ from .types import (
     UploadResult,
 )
 
+T = TypeVar("T")
 
 class RealityDefender(EventEmitter):
     """
@@ -253,7 +254,7 @@ class RealityDefender(EventEmitter):
         self._run_async(polling_task)  # Discard the return value
 
     @classmethod
-    def _run_async(cls, coro: Any) -> Any:
+    def _run_async(cls, coro: Coroutine[Any, Any, T]) -> T:
         """
         Run an async coroutine in a new event loop
 
