@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Basic usage example for the Reality Defender SDK
 """
@@ -35,7 +37,7 @@ async def basic_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis
         file_path = os.path.abspath(
@@ -50,9 +52,9 @@ async def basic_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = await client.upload({"file_path": file_path})
+        upload_result = await client.upload(file_path=file_path)
 
-        print(f"Upload successful!")
+        print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
         print(f"Media ID: {upload_result['media_id']}")
 
@@ -67,7 +69,7 @@ async def basic_example() -> None:
         if result["score"] is not None:
             print(f"Score: {result['score']:.4f} ({result['score']*100:.1f}%)")
         else:
-            print(f"Score: None")
+            print("Score: None")
 
         print("\nModel Results:")
         for model in result["models"]:
@@ -101,7 +103,7 @@ async def event_based_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Set up event handlers
         client.on(
@@ -128,7 +130,7 @@ async def event_based_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = await client.upload({"file_path": file_path})
+        upload_result = await client.upload(file_path=file_path)
 
         print(f"Upload successful! Request ID: {upload_result['request_id']}")
 

@@ -8,7 +8,7 @@ from typing import Any, Dict, TypeVar
 from ..client.http_client import HttpClient
 from ..core.constants import API_PATHS
 from ..errors import RealityDefenderError
-from ..types import UploadOptions, UploadResult
+from ..types import UploadResult
 from ..utils.file_utils import get_file_info
 
 # Generic type for the HTTP client
@@ -78,13 +78,13 @@ async def upload_to_signed_url(
         raise RealityDefenderError(f"Upload failed: {str(e)}", "upload_failed")
 
 
-async def upload_file(client: ClientType, options: UploadOptions) -> UploadResult:
+async def upload_file(client: ClientType, file_path: str) -> UploadResult:
     """
     Upload a file to Reality Defender for analysis
 
     Args:
         client: HTTP client for API requests
-        options: Upload options including file path
+        file_path: Path to the file to upload
 
     Returns:
         Dictionary with request_id and media_id
@@ -92,12 +92,10 @@ async def upload_file(client: ClientType, options: UploadOptions) -> UploadResul
     Raises:
         RealityDefenderError: If upload fails
     """
-    if not options.get("file_path"):
+    if not file_path:
         raise RealityDefenderError("file_path is required for upload", "invalid_file")
 
     try:
-        file_path = options["file_path"]
-
         # Get the filename
         filename = os.path.basename(file_path)
 
@@ -114,8 +112,8 @@ async def upload_file(client: ClientType, options: UploadOptions) -> UploadResul
                 return {"request_id": data["request_id"], "media_id": data["media_id"]}
 
         # Handle regular API response format
-        request_id = signed_url_response.get("requestId")
-        media_id = signed_url_response.get("mediaId")
+        request_id: str = signed_url_response.get("requestId")
+        media_id: str = signed_url_response.get("mediaId")
         signed_url = signed_url_response.get("response", {}).get("signedUrl")
 
         if not request_id or not media_id or not signed_url:

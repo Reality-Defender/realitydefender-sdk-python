@@ -4,7 +4,7 @@ Event handling for asynchronous operations
 
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, overload
 
-from ..types.events import ErrorHandler, EventName, ResultHandler
+from realitydefender.types import ErrorHandler, EventName, ResultHandler
 
 # Create a generic type for event names that can be either the specific EventName type
 # or any string (for testing purposes)

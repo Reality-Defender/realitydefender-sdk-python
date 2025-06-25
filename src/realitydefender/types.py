@@ -3,43 +3,9 @@ Type definitions for the Reality Defender SDK
 """
 
 from typing import List, Optional, TypedDict
+from typing import Dict, Literal, Protocol, Union, Any
 
-
-class RealityDefenderConfig(TypedDict, total=False):
-    """Configuration options for the Reality Defender SDK"""
-
-    api_key: str
-    """API key for authentication"""
-
-    base_url: Optional[str]
-    """Optional custom base URL for the API (defaults to production)"""
-
-
-class UploadOptions(TypedDict):
-    """Options for uploading media"""
-
-    file_path: str
-    """Path to the file to be analyzed"""
-
-
-class GetResultOptions(TypedDict, total=False):
-    """Options for retrieving results"""
-
-    max_attempts: Optional[int]
-    """Maximum number of polling attempts before returning even if still analyzing"""
-
-    polling_interval: Optional[int]
-    """Interval in milliseconds between polling attempts"""
-
-
-class DetectionOptions(TypedDict):
-    """Internal options for detection operations"""
-
-    max_attempts: int
-    """Maximum number of polling attempts before returning even if still analyzing"""
-
-    polling_interval: int
-    """Interval in milliseconds between polling attempts"""
+from realitydefender.errors import RealityDefenderError
 
 
 class UploadResult(TypedDict):
@@ -76,3 +42,23 @@ class DetectionResult(TypedDict):
 
     models: List[ModelResult]
     """Results from individual detection models"""
+
+
+# Protocol for event handlers
+class ResultHandler(Protocol):
+    """Event handler for detection results"""
+
+    def __call__(self, result: Any) -> None: ...  # Use Any instead of DetectionResult to avoid type errors
+
+
+class ErrorHandler(Protocol):
+    """Event handler for errors"""
+
+    def __call__(self, error: RealityDefenderError) -> None: ...
+
+
+# Type for event names
+EventName = Literal["result", "error"]
+
+# Map of event names to handler types
+EventHandlers = Dict[EventName, Union[ResultHandler, ErrorHandler]]

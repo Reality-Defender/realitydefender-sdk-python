@@ -14,10 +14,7 @@ from .detection.upload import upload_file
 from .errors import RealityDefenderError
 from .types import (
     DetectionResult,
-    GetResultOptions,
-    RealityDefenderConfig,
-    UploadOptions,
-    UploadResult,
+    ErrorHandler, ResultHandler, UploadResult,
 )
 
 
@@ -26,32 +23,33 @@ class RealityDefender(EventEmitter):
     Main SDK class for interacting with the Reality Defender API
     """
 
-    def __init__(self, config: RealityDefenderConfig) -> None:
+    def __init__(self, api_key: str, base_url: Optional[str] = None) -> None:
         """
         Creates a new Reality Defender SDK instance
 
         Args:
-            config: Configuration options including API key
+            api_key: Reality Defender API key
+            base_url: Base URL to connect to Reality Defender API
 
-        Raises:
+        Raises: 
             RealityDefenderError: If API key is missing
         """
         super().__init__()
 
-        if not config.get("api_key"):
+        if not api_key:
             raise RealityDefenderError("API key is required", "unauthorized")
 
-        self.api_key = config["api_key"]
+        self.api_key = api_key
         self.client = create_http_client(
-            {"api_key": self.api_key, "base_url": config.get("base_url")}
+            {"api_key": self.api_key, "base_url": base_url}
         )
 
-    async def upload(self, options: UploadOptions) -> UploadResult:
+    async def upload(self, file_path: str) -> UploadResult:
         """
         Upload a file to Reality Defender for analysis (async version)
 
         Args:
-            options: Upload options including file path
+            file_path: Path to file to upload
 
         Returns:
             Dictionary with request_id and media_id
@@ -60,21 +58,21 @@ class RealityDefender(EventEmitter):
             RealityDefenderError: If upload fails
         """
         try:
-            result = await upload_file(self.client, options)
+            result = await upload_file(self.client, file_path)
             return result
         except RealityDefenderError:
             raise
         except Exception as error:
             raise RealityDefenderError(f"Upload failed: {str(error)}", "upload_failed")
 
-    def upload_sync(self, options: UploadOptions) -> UploadResult:
+    def upload_sync(self, file_path: str) -> UploadResult:
         """
         Upload a file to Reality Defender for analysis (synchronous version)
 
         This is a convenience wrapper around the async upload method.
 
         Args:
-            options: Upload options including file path
+            file_path: Path to file to upload
 
         Returns:
             Dictionary with request_id and media_id
@@ -82,47 +80,32 @@ class RealityDefender(EventEmitter):
         Raises:
             RealityDefenderError: If upload fails
         """
-        return self._run_async(self.upload(options))
-
-    def upload_file(self, file_path: str) -> UploadResult:
-        """
-        Upload a file to Reality Defender for analysis (simplified version)
-
-        This is a more Pythonic convenience method that takes a direct file path.
-
-        Args:
-            file_path: Path to the file to analyze
-
-        Returns:
-            Dictionary with request_id and media_id
-
-        Raises:
-            RealityDefenderError: If upload fails
-        """
-        if not os.path.exists(file_path):
-            raise RealityDefenderError(f"File not found: {file_path}", "invalid_file")
-
-        return self.upload_sync({"file_path": file_path})
+        return self._run_async(self.upload(file_path))
 
     async def get_result(
-        self, request_id: str, options: Optional[GetResultOptions] = None
+        self,
+        request_id: str,
+        max_attempts: int = DEFAULT_POLLING_INTERVAL,
+        polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (async version)
 
         Args:
             request_id: The request ID to get results for
-            options: Optional parameters for polling
+            max_attempts: Maximum number of attempts to get results
+            polling_interval: How long to wait between attempts
 
         Returns:
             Detection result with status and scores
         """
-        if options is None:
-            options = {}
-        return await get_detection_result(self.client, request_id, options)
+        return await get_detection_result(self.client, request_id, max_attempts=max_attempts,
+                                          polling_interval=polling_interval)
 
     def get_result_sync(
-        self, request_id: str, options: Optional[GetResultOptions] = None
+        self, request_id: str,
+        max_attempts: int = DEFAULT_POLLING_INTERVAL,
+        polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (synchronous version)
@@ -131,12 +114,13 @@ class RealityDefender(EventEmitter):
 
         Args:
             request_id: The request ID to get results for
-            options: Optional parameters for polling
+            max_attempts: Maximum number of attempts to get results
+            polling_interval: How long to wait between attempts
 
         Returns:
             Detection result with status and scores
         """
-        return self._run_async(self.get_result(request_id, options))
+        return self._run_async(self.get_result(request_id, max_attempts=max_attempts, polling_interval=polling_interval))
 
     def detect_file(self, file_path: str) -> DetectionResult:
         """
@@ -158,7 +142,7 @@ class RealityDefender(EventEmitter):
             raise RealityDefenderError(f"File not found: {file_path}", "invalid_file")
 
         # Upload the file
-        upload_result = self.upload_sync({"file_path": file_path})
+        upload_result = self.upload_sync(file_path=file_path)
         request_id = upload_result["request_id"]
 
         # Get the result
@@ -212,11 +196,9 @@ class RealityDefender(EventEmitter):
         # Add event handlers if provided
         if on_result:
             # Cast to ResultHandler to satisfy type checker
-            from .types.events import ResultHandler
             self.on("result", cast(ResultHandler, on_result))
         if on_error:
             # Cast to ErrorHandler to satisfy type checker
-            from .types.events import ErrorHandler
             self.on("error", cast(ErrorHandler, on_error))
 
         # Create and run the polling task
@@ -275,7 +257,8 @@ class RealityDefender(EventEmitter):
                 "error", RealityDefenderError("Polling timeout exceeded", "timeout")
             )
 
-    def _run_async(self, coro: Any) -> Any:
+    @classmethod
+    def _run_async(cls, coro: Any) -> Any:
         """
         Run an async coroutine in a new event loop
 
@@ -315,3 +298,40 @@ class RealityDefender(EventEmitter):
             raise RealityDefenderError(
                 f"Async operation failed: {str(e)}", "unknown_error"
             )
+
+    async def cleanup(self) -> None:
+        """
+        Clean up resources used by the SDK
+
+        This should be called when you're done using the SDK to ensure all resources
+        are properly released.
+        """
+        if hasattr(self, "client") and self.client:
+            await self.client.close()
+
+    def cleanup_sync(self) -> None:
+        """
+        Synchronous version of cleanup
+
+        This should be called when you're done using the SDK to ensure all resources
+        are properly released.
+        """
+        self._run_async(self.cleanup())  # Discard the return value
+
+    def __del__(self) -> None:
+        """
+        Destructor to ensure resources are cleaned up
+
+        This will attempt to close any open sessions when the object is garbage collected.
+        It's still recommended to explicitly call cleanup() or cleanup_sync() when done.
+        """
+        try:
+            if hasattr(self, "client") and self.client:
+                # We can't use asyncio directly in __del__, so we'll try our best
+                # to clean up without relying on async operations
+                if hasattr(self.client, "session") and self.client.session:
+                    # Mark session for closing on GC - it's not perfect but better than nothing
+                    self.client.session._closed = True
+        except Exception:
+            # Suppress any errors during cleanup
+            pass
