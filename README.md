@@ -29,14 +29,12 @@ from realitydefender import RealityDefender
 async def main():
     # Initialize the SDK with your API key
     print("Initializing Reality Defender SDK...")
-    rd = RealityDefender({
-        "api_key": "your-api-key"
-    })
+    rd = RealityDefender(api_key="your-api-key")
 
     try:
         # Upload a file for analysis
         print("Uploading file for analysis...")
-        response = await rd.upload({"file_path": "/path/to/your/file.jpg"})
+        response = await rd.upload(file_path="/path/to/your/file.jpg")
         request_id = response["request_id"]
         print(f"File uploaded successfully. Request ID: {request_id}")
 
@@ -75,9 +73,7 @@ from realitydefender import RealityDefender
 async def main():
     # Initialize the SDK
     print("Initializing Reality Defender SDK...")
-    rd = RealityDefender({
-        "api_key": "your-api-key"
-    })
+    rd = RealityDefender(api_key="your-api-key")
 
     try:
         # Set up event handlers
@@ -87,7 +83,7 @@ async def main():
 
         # Upload and start polling
         print("Uploading file for analysis...")
-        response = await rd.upload({"file_path": "/path/to/your/file.jpg"})
+        response = await rd.upload(file_path="/path/to/your/file.jpg")
         request_id = response["request_id"]
         print(f"File uploaded successfully. Request ID: {request_id}")
         
@@ -121,20 +117,17 @@ The Reality Defender SDK uses asynchronous operations throughout.
 ### Initialize the SDK
 
 ```python
-rd = RealityDefender({
-    "api_key": str,               # Required: Your API key
-    "base_url": str,              # Optional: Custom API base URL
-    "timeout": int                # Optional: Default request timeout in ms
-})
+rd = RealityDefender(
+    api_key="your-api-key",               # Required: Your API key
+)
 ```
 
 ### Upload Media for Analysis
 
 ```python
 # Must be called from within an async function
-response = await rd.upload({
-    "file_path": str,             # Required: Path to the file to analyze
-})
+response = await rd.upload(file_path="/path/to/file.jpg")     # Required: Path to the file to analyze
+)
 ```
 
 Returns: `{"request_id": str, "media_id": str}`
@@ -183,7 +176,7 @@ The SDK raises exceptions for various error scenarios:
 
 ```python
 try:
-    result = reality_defender.upload(file_path="/path/to/file.jpg")
+    result = rd.upload(file_path="/path/to/file.jpg")
 except RealityDefenderError as error:
     print(f"Error: {error.message} ({error.code})")
     # Error codes: 'unauthorized', 'server_error', 'timeout', 

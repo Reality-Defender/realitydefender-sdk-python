@@ -54,7 +54,7 @@ def basic_sync_example() -> None:
         print(f"Uploading file: {file_path}")
         upload_result = client.upload_sync({"file_path": file_path})
 
-        print(f"Upload successful!")
+        print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
         print(f"Media ID: {upload_result['media_id']}")
 

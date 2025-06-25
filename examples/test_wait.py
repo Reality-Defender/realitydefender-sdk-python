@@ -46,7 +46,7 @@ async def test_wait_for_result() -> None:
         print(f"Uploading file: {file_path}")
         upload_result = await client.upload({"file_path": file_path})
 
-        print(f"Upload successful!")
+        print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
         print(f"Media ID: {upload_result['media_id']}")
 
@@ -74,7 +74,7 @@ async def test_wait_for_result() -> None:
         if result["score"] is not None:
             print(f"Score: {result['score']:.4f} ({result['score']*100:.1f}%)")
         else:
-            print(f"Score: None")
+            print("Score: None")
 
         # Print model results, filtering out NOT_APPLICABLE ones
         print("\nModel Results (only applicable models):")

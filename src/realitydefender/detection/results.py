@@ -1,7 +1,6 @@
 """
 Detection results retrieval and processing
 """
-
 from typing import Any, Dict, TypeVar
 
 from ..client.http_client import HttpClient
@@ -47,8 +46,6 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     Returns:
         Simplified detection result
     """
-
-
 
     # Handle regular API responses
     if "resultsSummary" in response:

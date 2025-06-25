@@ -3,7 +3,7 @@ File upload functionality for detection
 """
 
 import os
-from typing import Any, Dict, TypeVar
+from typing import Any, Dict
 
 from ..client.http_client import HttpClient
 from ..core.constants import API_PATHS
@@ -11,11 +11,9 @@ from ..errors import RealityDefenderError
 from ..types import UploadResult
 from ..utils.file_utils import get_file_info
 
-# Generic type for the HTTP client
-ClientType = TypeVar("ClientType", bound=HttpClient)
 
-
-async def get_signed_url(client: ClientType, filename: str) -> Dict[str, Any]:
+async def get_signed_url(
+    client: HttpClient, filename: str) -> Dict[str, Any]:
     """
     Get a signed URL for uploading a file
 
@@ -43,7 +41,7 @@ async def get_signed_url(client: ClientType, filename: str) -> Dict[str, Any]:
 
 
 async def upload_to_signed_url(
-    client: ClientType, signed_url: str, file_path: str
+    client: HttpClient, signed_url: str, file_path: str
 ) -> None:
     """
     Upload file content to a signed URL
@@ -78,7 +76,7 @@ async def upload_to_signed_url(
         raise RealityDefenderError(f"Upload failed: {str(e)}", "upload_failed")
 
 
-async def upload_file(client: ClientType, file_path: str) -> UploadResult:
+async def upload_file(client: HttpClient, file_path: str) -> UploadResult:
     """
     Upload a file to Reality Defender for analysis
 
