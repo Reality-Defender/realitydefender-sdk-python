@@ -14,7 +14,9 @@ from .detection.upload import upload_file
 from .errors import RealityDefenderError
 from .types import (
     DetectionResult,
-    ErrorHandler, ResultHandler, UploadResult,
+    ErrorHandler,
+    ResultHandler,
+    UploadResult,
 )
 
 
@@ -31,7 +33,7 @@ class RealityDefender(EventEmitter):
             api_key: Reality Defender API key
             base_url: Base URL to connect to Reality Defender API
 
-        Raises: 
+        Raises:
             RealityDefenderError: If API key is missing
         """
         super().__init__()
@@ -99,11 +101,16 @@ class RealityDefender(EventEmitter):
         Returns:
             Detection result with status and scores
         """
-        return await get_detection_result(self.client, request_id, max_attempts=max_attempts,
-                                          polling_interval=polling_interval)
+        return await get_detection_result(
+            self.client,
+            request_id,
+            max_attempts=max_attempts,
+            polling_interval=polling_interval,
+        )
 
     def get_result_sync(
-        self, request_id: str,
+        self,
+        request_id: str,
         max_attempts: int = DEFAULT_POLLING_INTERVAL,
         polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
@@ -120,7 +127,11 @@ class RealityDefender(EventEmitter):
         Returns:
             Detection result with status and scores
         """
-        return self._run_async(self.get_result(request_id, max_attempts=max_attempts, polling_interval=polling_interval))
+        return self._run_async(
+            self.get_result(
+                request_id, max_attempts=max_attempts, polling_interval=polling_interval
+            )
+        )
 
     def detect_file(self, file_path: str) -> DetectionResult:
         """
@@ -208,7 +219,6 @@ class RealityDefender(EventEmitter):
                 "error", RealityDefenderError("Polling timeout exceeded", "timeout")
             )
 
-
     def poll_for_results_sync(
         self,
         request_id: str,
@@ -241,7 +251,6 @@ class RealityDefender(EventEmitter):
         # Create and run the polling task
         polling_task = self.poll_for_results(request_id, polling_interval, timeout)
         self._run_async(polling_task)  # Discard the return value
-
 
     @classmethod
     def _run_async(cls, coro: Any) -> Any:

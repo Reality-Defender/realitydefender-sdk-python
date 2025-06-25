@@ -8,8 +8,8 @@ from realitydefender.types import ErrorHandler, EventName, ResultHandler
 
 # Create a generic type for event names that can be either the specific EventName type
 # or any string (for testing purposes)
-E = TypeVar('E', EventName, str)
-CallbackT = TypeVar('CallbackT', bound=Callable[..., Any])
+E = TypeVar("E", EventName, str)
+CallbackT = TypeVar("CallbackT", bound=Callable[..., Any])
 
 
 class EventEmitter:
@@ -22,7 +22,9 @@ class EventEmitter:
         self._events: Dict[str, List[Callable]] = {}
 
     @overload
-    def on(self, event: EventName, callback: Union[ResultHandler, ErrorHandler]) -> None: ...
+    def on(
+        self, event: EventName, callback: Union[ResultHandler, ErrorHandler]
+    ) -> None: ...
 
     @overload
     def on(self, event: str, callback: Callable[..., Any]) -> None: ...
@@ -40,7 +42,9 @@ class EventEmitter:
         self._events[event].append(callback)
 
     @overload
-    def once(self, event: EventName, callback: Union[ResultHandler, ErrorHandler]) -> None: ...
+    def once(
+        self, event: EventName, callback: Union[ResultHandler, ErrorHandler]
+    ) -> None: ...
 
     @overload
     def once(self, event: str, callback: Callable[..., Any]) -> None: ...
@@ -87,7 +91,9 @@ class EventEmitter:
         return len(self._events[event]) > 0
 
     @overload
-    def remove_listener(self, event: EventName, callback: Callable[..., Any]) -> None: ...
+    def remove_listener(
+        self, event: EventName, callback: Callable[..., Any]
+    ) -> None: ...
 
     @overload
     def remove_listener(self, event: str, callback: Callable[..., Any]) -> None: ...

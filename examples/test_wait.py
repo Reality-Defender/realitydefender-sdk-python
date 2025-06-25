@@ -72,7 +72,7 @@ async def test_wait_for_result() -> None:
 
         # Format score as a percentage if it exists
         if result["score"] is not None:
-            print(f"Score: {result['score']:.4f} ({result['score']*100:.1f}%)")
+            print(f"Score: {result['score']:.4f} ({result['score'] * 100:.1f}%)")
         else:
             print("Score: None")
 
@@ -85,7 +85,7 @@ async def test_wait_for_result() -> None:
         for model in applicable_models:
             score_display = "None"
             if model["score"] is not None:
-                score_display = f"{model['score']:.4f} ({model['score']*100:.1f}%)"
+                score_display = f"{model['score']:.4f} ({model['score'] * 100:.1f}%)"
             print(f"  - {model['name']}: {model['status']} (Score: {score_display})")
 
     except RealityDefenderError as e:

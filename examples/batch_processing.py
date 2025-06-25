@@ -23,7 +23,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 def format_file_size(size_bytes: float) -> str:
@@ -70,7 +70,9 @@ async def process_file(
         print(f"  Request ID: {request_id} (uploaded in {upload_time:.2f}s)")
 
         result_start_time = time.time()
-        result = await client.get_result(request_id, polling_interval=polling_interval, max_attempts=60)
+        result = await client.get_result(
+            request_id, polling_interval=polling_interval, max_attempts=60
+        )
         result_time = time.time() - result_start_time
 
         print(
@@ -99,9 +101,7 @@ async def process_file(
 
 
 async def batch_process_directories(
-    process_images: bool = True,
-    process_videos: bool = True,
-    max_concurrent: int = 3
+    process_images: bool = True, process_videos: bool = True, max_concurrent: int = 3
 ) -> None:
     """
     Process media files in directories concurrently

@@ -19,7 +19,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 async def basic_example() -> None:
@@ -67,7 +67,7 @@ async def basic_example() -> None:
 
         # Format score as a percentage if it exists
         if result["score"] is not None:
-            print(f"Score: {result['score']:.4f} ({result['score']*100:.1f}%)")
+            print(f"Score: {result['score']:.4f} ({result['score'] * 100:.1f}%)")
         else:
             print("Score: None")
 
@@ -75,7 +75,7 @@ async def basic_example() -> None:
         for model in result["models"]:
             score_display = "None"
             if model["score"] is not None:
-                score_display = f"{model['score']:.4f} ({model['score']*100:.1f}%)"
+                score_display = f"{model['score']:.4f} ({model['score'] * 100:.1f}%)"
             print(f"  - {model['name']}: {model['status']} (Score: {score_display})")
 
     except RealityDefenderError as e:

@@ -48,7 +48,9 @@ class DetectionResult(TypedDict):
 class ResultHandler(Protocol):
     """Event handler for detection results"""
 
-    def __call__(self, result: Any) -> None: ...  # Use Any instead of DetectionResult to avoid type errors
+    def __call__(
+        self, result: Any
+    ) -> None: ...  # Use Any instead of DetectionResult to avoid type errors
 
 
 class ErrorHandler(Protocol):

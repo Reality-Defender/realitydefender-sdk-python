@@ -12,8 +12,7 @@ from realitydefender.types import UploadResult
 from realitydefender.utils.file_utils import get_file_info
 
 
-async def get_signed_url(
-    client: HttpClient, filename: str) -> Dict[str, Any]:
+async def get_signed_url(client: HttpClient, filename: str) -> Dict[str, Any]:
     """
     Get a signed URL for uploading a file
 

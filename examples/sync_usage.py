@@ -8,7 +8,6 @@ This example shows how to use the SDK without dealing with asyncio.
 import os
 import sys
 import time
-import traceback
 from typing import Optional
 
 # Add the parent directory to the Python path so we can import the SDK
@@ -22,7 +21,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 def basic_sync_example() -> None:
@@ -207,7 +206,6 @@ def sync_callback_example() -> None:
     except RealityDefenderError as e:
         print(f"Error: {e.message} (Code: {e.code})")
     except Exception as e:
-        print(traceback.format_exc())
         print(f"Unexpected error: {str(e)}")
     finally:
         # Properly close the client session

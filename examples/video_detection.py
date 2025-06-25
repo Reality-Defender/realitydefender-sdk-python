@@ -22,7 +22,7 @@ def format_score(score: Optional[float]) -> str:
     """Helper function to format scores for display"""
     if score is None:
         return "None"
-    return f"{score:.4f} ({score*100:.1f}%)"
+    return f"{score:.4f} ({score * 100:.1f}%)"
 
 
 async def detect_video_deepfake() -> None:
