@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Synchronous usage example for the Reality Defender SDK
 This example shows how to use the SDK without dealing with asyncio.
@@ -6,6 +8,7 @@ This example shows how to use the SDK without dealing with asyncio.
 import os
 import sys
 import time
+import traceback
 from typing import Optional
 
 # Add the parent directory to the Python path so we can import the SDK
@@ -37,7 +40,7 @@ def basic_sync_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis using the synchronous method
         file_path = os.path.abspath(
@@ -52,7 +55,7 @@ def basic_sync_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = client.upload_sync({"file_path": file_path})
+        upload_result = client.upload_sync(file_path=file_path)
 
         print("Upload successful!")
         print(f"Request ID: {upload_result['request_id']}")
@@ -97,7 +100,7 @@ def one_step_detection_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Define the path to the file
         file_path = os.path.abspath(
@@ -170,7 +173,7 @@ def sync_callback_example() -> None:
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         # Upload a file for analysis using the synchronous method
         file_path = os.path.abspath(
@@ -185,7 +188,7 @@ def sync_callback_example() -> None:
             return
 
         print(f"Uploading file: {file_path}")
-        upload_result = client.upload_sync({"file_path": file_path})
+        upload_result = client.upload_sync(file_path=file_path)
 
         print(f"Upload successful! Request ID: {upload_result['request_id']}")
 
@@ -204,6 +207,7 @@ def sync_callback_example() -> None:
     except RealityDefenderError as e:
         print(f"Error: {e.message} (Code: {e.code})")
     except Exception as e:
+        print(traceback.format_exc())
         print(f"Unexpected error: {str(e)}")
     finally:
         # Properly close the client session

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Batch processing example for the Reality Defender SDK
 This example shows how to process multiple files concurrently.
@@ -15,7 +17,6 @@ from typing import Any, Dict, List, Optional
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from realitydefender import RealityDefender, RealityDefenderError
-from realitydefender.types import GetResultOptions
 
 
 def format_score(score: Optional[float]) -> str:
@@ -35,7 +36,7 @@ def format_file_size(size_bytes: float) -> str:
 
 
 async def process_file(
-    client: RealityDefender, file_path: str, polling_opts: Optional[GetResultOptions] = None
+    client: RealityDefender, file_path: str, polling_interval: int
 ) -> Dict[str, Any]:
     """
     Process a single file and return results
@@ -43,7 +44,7 @@ async def process_file(
     Args:
         client: RealityDefender client
         file_path: Path to file for analysis
-        polling_opts: Options for result polling
+        polling_interval: Polling interval in milliseconds
 
     Returns:
         Dictionary with file path, request ID, and detection results
@@ -62,23 +63,14 @@ async def process_file(
         start_time = time.time()
 
         # Upload file for analysis
-        upload_result = await client.upload({"file_path": file_path})
+        upload_result = await client.upload(file_path=file_path)
 
         upload_time = time.time() - start_time
         request_id = upload_result["request_id"]
         print(f"  Request ID: {request_id} (uploaded in {upload_time:.2f}s)")
 
-        # Get results with polling
-        # Videos need longer polling times
-        if polling_opts is None:
-            polling_opts = {}
-
-        # For videos, use longer polling times if not specified
-        if file_type == "video" and "max_attempts" not in polling_opts:
-            polling_opts["max_attempts"] = 60  # More attempts for videos
-
         result_start_time = time.time()
-        result = await client.get_result(request_id, polling_opts)
+        result = await client.get_result(request_id, polling_interval=polling_interval, max_attempts=60)
         result_time = time.time() - result_start_time
 
         print(
@@ -130,7 +122,7 @@ async def batch_process_directories(
 
     try:
         # Initialize the SDK
-        client = RealityDefender({"api_key": api_key})
+        client = RealityDefender(api_key=api_key)
 
         media_files: List[str] = []
 
@@ -209,7 +201,7 @@ async def batch_process_directories(
                 return await process_file(
                     client,
                     file_path,
-                    {"polling_interval": 3000},  # 3 seconds between polls
+                    polling_interval=3000,  # 3 seconds between polls
                 )
 
         # Create tasks for all files

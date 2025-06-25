@@ -148,12 +148,12 @@ class RealityDefender(EventEmitter):
         # Get the result
         return self.get_result_sync(request_id)
 
-    def poll_for_results(
+    async def poll_for_results(
         self,
         request_id: str,
         polling_interval: Optional[int] = None,
         timeout: Optional[int] = None,
-    ) -> asyncio.Task:
+    ) -> None:
         """
         Start polling for results with event-based callback (async version)
 
@@ -168,54 +168,6 @@ class RealityDefender(EventEmitter):
         polling_interval = polling_interval or DEFAULT_POLLING_INTERVAL
         timeout = timeout or DEFAULT_TIMEOUT
 
-        return asyncio.create_task(
-            self._poll_for_results(request_id, polling_interval, timeout)
-        )
-
-    def poll_for_results_sync(
-        self,
-        request_id: str,
-        *,  # Force keyword arguments for better readability
-        polling_interval: Optional[int] = None,
-        timeout: Optional[int] = None,
-        on_result: Optional[Callable[[DetectionResult], None]] = None,
-        on_error: Optional[Callable[[RealityDefenderError], None]] = None,
-    ) -> None:
-        """
-        Start polling for results with synchronous callbacks
-
-        This is a convenience wrapper around the async poll_for_results method.
-
-        Args:
-            request_id: The request ID to poll for
-            polling_interval: Interval in milliseconds between polls (default: 2000)
-            timeout: Maximum time to poll in milliseconds (default: 60000)
-            on_result: Callback function when result is received
-            on_error: Callback function when error occurs
-        """
-        # Add event handlers if provided
-        if on_result:
-            # Cast to ResultHandler to satisfy type checker
-            self.on("result", cast(ResultHandler, on_result))
-        if on_error:
-            # Cast to ErrorHandler to satisfy type checker
-            self.on("error", cast(ErrorHandler, on_error))
-
-        # Create and run the polling task
-        polling_task = self.poll_for_results(request_id, polling_interval, timeout)
-        self._run_async(polling_task)  # Discard the return value
-
-    async def _poll_for_results(
-        self, request_id: str, polling_interval: int, timeout: int
-    ) -> None:
-        """
-        Internal implementation of polling for results
-
-        Args:
-            request_id: The request ID to poll for
-            polling_interval: Interval in milliseconds between polls
-            timeout: Maximum time to poll in milliseconds
-        """
         elapsed = 0
         max_wait_time = timeout
         is_completed = False
@@ -255,6 +207,41 @@ class RealityDefender(EventEmitter):
             self.emit(
                 "error", RealityDefenderError("Polling timeout exceeded", "timeout")
             )
+
+
+    def poll_for_results_sync(
+        self,
+        request_id: str,
+        *,  # Force keyword arguments for better readability
+        polling_interval: Optional[int] = None,
+        timeout: Optional[int] = None,
+        on_result: Optional[Callable[[DetectionResult], None]] = None,
+        on_error: Optional[Callable[[RealityDefenderError], None]] = None,
+    ) -> None:
+        """
+        Start polling for results with synchronous callbacks
+
+        This is a convenience wrapper around the async poll_for_results method.
+
+        Args:
+            request_id: The request ID to poll for
+            polling_interval: Interval in milliseconds between polls (default: 2000)
+            timeout: Maximum time to poll in milliseconds (default: 60000)
+            on_result: Callback function when result is received
+            on_error: Callback function when error occurs
+        """
+        # Add event handlers if provided
+        if on_result:
+            # Cast to ResultHandler to satisfy type checker
+            self.on("result", cast(ResultHandler, on_result))
+        if on_error:
+            # Cast to ErrorHandler to satisfy type checker
+            self.on("error", cast(ErrorHandler, on_error))
+
+        # Create and run the polling task
+        polling_task = self.poll_for_results(request_id, polling_interval, timeout)
+        self._run_async(polling_task)  # Discard the return value
+
 
     @classmethod
     def _run_async(cls, coro: Any) -> Any:
