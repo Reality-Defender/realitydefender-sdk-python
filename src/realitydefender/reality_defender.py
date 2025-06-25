@@ -21,6 +21,7 @@ from .types import (
 
 T = TypeVar("T")
 
+
 class RealityDefender(EventEmitter):
     """
     Main SDK class for interacting with the Reality Defender API
