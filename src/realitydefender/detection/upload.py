@@ -5,11 +5,11 @@ File upload functionality for detection
 import os
 from typing import Any, Dict
 
-from ..client.http_client import HttpClient
-from ..core.constants import API_PATHS
-from ..errors import RealityDefenderError
-from ..types import UploadResult
-from ..utils.file_utils import get_file_info
+from realitydefender.client.http_client import HttpClient
+from realitydefender.core.constants import API_PATHS
+from realitydefender.errors import RealityDefenderError
+from realitydefender.types import UploadResult
+from realitydefender.utils.file_utils import get_file_info
 
 
 async def get_signed_url(
@@ -100,19 +100,10 @@ async def upload_file(client: HttpClient, file_path: str) -> UploadResult:
         # Get signed URL
         signed_url_response = await get_signed_url(client, filename)
 
-        # Handle test mock responses which may have a different format
-        # If the response has a data wrapper (for tests)
-        if "data" in signed_url_response and isinstance(
-            signed_url_response["data"], dict
-        ):
-            data = signed_url_response["data"]
-            if "request_id" in data and "media_id" in data:
-                return {"request_id": data["request_id"], "media_id": data["media_id"]}
-
         # Handle regular API response format
-        request_id: str = signed_url_response.get("requestId")
-        media_id: str = signed_url_response.get("mediaId")
-        signed_url = signed_url_response.get("response", {}).get("signedUrl")
+        request_id: str = signed_url_response.get("requestId", "")
+        media_id: str = signed_url_response.get("mediaId", "")
+        signed_url = signed_url_response.get("response", {}).get("signedUrl", "")
 
         if not request_id or not media_id or not signed_url:
             raise RealityDefenderError(

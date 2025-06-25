@@ -230,7 +230,6 @@ class RealityDefender(EventEmitter):
         while not is_completed and elapsed < max_wait_time:
             try:
                 result = await self.get_result(request_id)
-
                 if result["status"] == "ANALYZING":
                     elapsed += polling_interval
                     await asyncio.sleep(polling_interval / 1000)  # Convert to seconds

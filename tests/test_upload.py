@@ -100,16 +100,13 @@ async def test_upload_file_success_test_format_return_type(http_client: HttpClie
     """Test successful file upload with test mock response format returns correct type"""
     # Mock get_signed_url response with test format
     signed_url_response: Dict[str, Any] = {
-        "data": {
-            "request_id": "test-request-id",
-            "media_id": "test-media-id"
-        }
+        "requestId": "test-request-id", "mediaId": "test-media-id", "response": {"signedUrl": "https://signed-url.com"}
     }
 
-    with patch('realitydefender.detection.upload.get_signed_url') as mock_get_signed_url:
+    with patch('realitydefender.detection.upload.get_signed_url') as mock_get_signed_url, patch("realitydefender.detection.upload.upload_to_signed_url"):
         mock_get_signed_url.return_value = signed_url_response
 
-        result: UploadResult = await upload_file(http_client, {"file_path": temp_test_file})
+        result: UploadResult = await upload_file(http_client, file_path=temp_test_file)
 
         # Verify return type matches UploadResult
         assert isinstance(result, dict)
@@ -133,7 +130,7 @@ async def test_upload_file_invalid_api_response_exception_type(http_client: Http
         mock_get_signed_url.return_value = signed_url_response
 
         with pytest.raises(RealityDefenderError) as exc_info:
-            await upload_file(http_client, {"file_path": temp_test_file})
+            await upload_file(http_client, file_path=temp_test_file)
 
         raised_error: RealityDefenderError = exc_info.value
         assert isinstance(raised_error, RealityDefenderError)
@@ -148,7 +145,7 @@ async def test_upload_file_converts_generic_error_type(http_client: HttpClient, 
         mock_get_signed_url.side_effect = ValueError("Unexpected error")
 
         with pytest.raises(RealityDefenderError) as exc_info:
-            await upload_file(http_client, {"file_path": temp_test_file})
+            await upload_file(http_client, file_path=temp_test_file)
 
         raised_error: RealityDefenderError = exc_info.value
         assert isinstance(raised_error, RealityDefenderError)
@@ -168,7 +165,7 @@ async def test_upload_file_empty_strings_handling(http_client: HttpClient) -> No
     with patch('realitydefender.detection.upload.get_signed_url') as mock_get_signed_url:
         mock_get_signed_url.return_value = signed_url_response
         with pytest.raises(RealityDefenderError) as exc_info:
-            await upload_file(http_client, {"file_path": "/some/path"})
+            await upload_file(http_client, file_path="/some/path")
 
         raised_error: RealityDefenderError = exc_info.value
         assert isinstance(raised_error, RealityDefenderError)
@@ -187,7 +184,7 @@ async def test_upload_file_none_values_handling(http_client: HttpClient) -> None
     with patch('realitydefender.detection.upload.get_signed_url') as mock_get_signed_url:
         mock_get_signed_url.return_value = signed_url_response
         with pytest.raises(RealityDefenderError) as exc_info:
-            await upload_file(http_client, {"file_path": "/some/path"})
+            await upload_file(http_client, file_path="/some/path")
 
         raised_error: RealityDefenderError = exc_info.value
         assert isinstance(raised_error, RealityDefenderError)

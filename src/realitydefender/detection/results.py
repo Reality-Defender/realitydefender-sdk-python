@@ -3,11 +3,11 @@ Detection results retrieval and processing
 """
 from typing import Any, Dict, TypeVar
 
-from ..client.http_client import HttpClient
-from ..core.constants import API_PATHS, DEFAULT_MAX_ATTEMPTS, DEFAULT_POLLING_INTERVAL
-from ..errors import RealityDefenderError
-from ..types import DetectionResult
-from ..utils.async_utils import sleep
+from realitydefender.client.http_client import HttpClient
+from realitydefender.core.constants import API_PATHS, DEFAULT_MAX_ATTEMPTS, DEFAULT_POLLING_INTERVAL
+from realitydefender.errors import RealityDefenderError
+from realitydefender.types import DetectionResult, ModelResult
+from realitydefender.utils.async_utils import sleep
 
 # Generic type for the HTTP client
 ClientType = TypeVar("ClientType", bound=HttpClient)
@@ -72,7 +72,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
         models_data = response.get("models", [])
 
         # Format models
-        models = []
+        models: list[ModelResult] = []
         for model in models_data:
             if model.get("status") == "NOT_APPLICABLE":
                 continue
@@ -102,7 +102,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
 async def get_detection_result(
     client: ClientType, request_id: str,
     max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-    polling_interval: float = DEFAULT_POLLING_INTERVAL
+    polling_interval: int = DEFAULT_POLLING_INTERVAL
 ) -> DetectionResult:
     """
     Get the detection result for a specific request
