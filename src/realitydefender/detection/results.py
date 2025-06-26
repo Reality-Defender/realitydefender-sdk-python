@@ -66,24 +66,21 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
         score = None
         if raw_score is not None:
             try:
-                # Convert to float and normalize to 0-1 range if it's in percentage form
-                score = float(raw_score)
-                if score > 1:
-                    score = score / 100.0
+                score = raw_score / 100.0
             except (ValueError, TypeError):
                 score = None
 
         # Extract active models (not NOT_APPLICABLE)
-        models_data = response.get("models", [])
+        models_data = [m for m in response.get("models", []) if m.get("status") != "NOT_APPLICABLE"]
 
         # Format models
         models: list[ModelResult] = []
         for model in models_data:
-            if model.get("status") == "NOT_APPLICABLE":
-                continue
-
-            # Normalize model score to 0-1 range
-            model_score = float(model.get("finalScore") or 0) / 100.0
+            predicted_number = model.get("predictionNumber")
+            if isinstance(predicted_number, (int, float)):
+                model_score = predicted_number
+            else:
+                model_score = None
 
             # Replace FAKE with ARTIFICIAL in model status
             model_status = model.get("status", "UNKNOWN")

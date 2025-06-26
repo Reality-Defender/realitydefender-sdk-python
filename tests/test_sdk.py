@@ -94,15 +94,40 @@ async def test_get_result(
             "status": "ARTIFICIAL",
             "metadata": {"finalScore": 95.5},
         },
-        "models": [{"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3}],
+        "models": [
+            {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3, "predictionNumber": 0.973},
+            {
+                "name": "model2",
+                "status": "COMPLETED",
+                "predictionNumber": {
+                    "reason": "relevance: no faces detected/faces too small",
+                    "decision": "NOT_EVALUATED",
+                },
+                "normalizedPredictionNumber": None,
+                "rollingAvgNumber": None,
+                "finalScore": None,
+            },
+            {
+                "name": "model3",
+                "status": "NOT_APPLICABLE",
+                "predictionNumber": {
+                    "reason": "relevance: no faces detected/faces too small",
+                    "decision": "NOT_EVALUATED",
+                },
+                "normalizedPredictionNumber": None,
+                "rollingAvgNumber": None,
+                "finalScore": None,
+            },
+        ],
     }
 
     # Test getting results
     result = await sdk_instance.get_result("test-request-id")
     assert result["status"] == "ARTIFICIAL"
     assert result["score"] == 0.955
-    assert len(result["models"]) == 1
-    assert result["models"][0]["name"] == "model1"
+    assert len(result["models"]) == 2
+    assert [m['name'] for m in result["models"]] == ["model1", "model2"]
+    assert [m['score'] for m in result["models"]] == [.973, None]
 
 
 @pytest.mark.asyncio
@@ -122,7 +147,7 @@ async def test_poll_for_results(
                 "metadata": {"finalScore": 95.5},
             },
             "models": [
-                {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3},
+                {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3, "predictionNumber": 0.973},
                 {"name": "model1", "status": "NOT_APPLICABLE", "finalScore": 0},
             ],
         },
@@ -201,11 +226,36 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
             "status": "AUTHENTIC",
             "metadata": {"finalScore": 12.3},
         },
-        "models": [{"name": "model1", "status": "AUTHENTIC", "finalScore": 8.1}],
+        "models": [
+            {"name": "model1", "status": "AUTHENTIC", "finalScore": 8.1, "predictionNumber": 0.97},
+            {
+                "name": "model2",
+                "status": "COMPLETED",
+                "predictionNumber": {
+                    "reason": "relevance: no faces detected/faces too small",
+                    "decision": "NOT_EVALUATED",
+                },
+                "normalizedPredictionNumber": None,
+                "rollingAvgNumber": None,
+                "finalScore": None,
+            },
+            {
+                "name": "model3",
+                "status": "NOT_APPLICABLE",
+                "predictionNumber": {
+                    "reason": "relevance: no faces detected/faces too small",
+                    "decision": "NOT_EVALUATED",
+                },
+                "normalizedPredictionNumber": None,
+                "rollingAvgNumber": None,
+                "finalScore": None,
+            },
+        ],
     }
 
     # Test direct get_detection_result function
     detection_result = await get_detection_result(mock_client, "test-request-id")
     assert detection_result["status"] == "AUTHENTIC"
     assert abs((detection_result["score"] or 0) - 0.123) < 0.0001
-    assert len(detection_result["models"]) == 1
+    assert len(detection_result["models"]) == 2
+    assert [m['score'] for m in detection_result["models"]] == [0.97, None]
