@@ -227,7 +227,7 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
             "metadata": {"finalScore": 12.3},
         },
         "models": [
-            {"name": "model1", "status": "AUTHENTIC", "finalScore": 8.1, "predictionNumber": 0.97},
+            {"name": "model1", "status": "AUTHENTIC", "finalScore": 97, "predictionNumber": 0.97},
             {
                 "name": "model2",
                 "status": "COMPLETED",
