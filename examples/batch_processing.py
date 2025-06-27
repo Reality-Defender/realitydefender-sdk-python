@@ -9,12 +9,8 @@ import argparse
 import asyncio
 import glob
 import os
-import sys
 import time
 from typing import Any, Dict, List, Optional
-
-# Add the parent directory to the Python path so we can import the SDK
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from realitydefender import RealityDefender, RealityDefenderError
 
@@ -250,10 +246,6 @@ async def batch_process_directories(
         print(f"Error: {e.message} (Code: {e.code})")
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
-    finally:
-        # Properly close the client session
-        if client:
-            await client.cleanup()
 
 
 if __name__ == "__main__":

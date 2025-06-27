@@ -95,7 +95,12 @@ async def test_get_result(
             "metadata": {"finalScore": 95.5},
         },
         "models": [
-            {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3, "predictionNumber": 0.973},
+            {
+                "name": "model1",
+                "status": "ARTIFICIAL",
+                "finalScore": 97.3,
+                "predictionNumber": 0.973,
+            },
             {
                 "name": "model2",
                 "status": "COMPLETED",
@@ -126,8 +131,8 @@ async def test_get_result(
     assert result["status"] == "ARTIFICIAL"
     assert result["score"] == 0.955
     assert len(result["models"]) == 2
-    assert [m['name'] for m in result["models"]] == ["model1", "model2"]
-    assert [m['score'] for m in result["models"]] == [.973, None]
+    assert [m["name"] for m in result["models"]] == ["model1", "model2"]
+    assert [m["score"] for m in result["models"]] == [0.973, None]
 
 
 @pytest.mark.asyncio
@@ -147,7 +152,12 @@ async def test_poll_for_results(
                 "metadata": {"finalScore": 95.5},
             },
             "models": [
-                {"name": "model1", "status": "ARTIFICIAL", "finalScore": 97.3, "predictionNumber": 0.973},
+                {
+                    "name": "model1",
+                    "status": "ARTIFICIAL",
+                    "finalScore": 97.3,
+                    "predictionNumber": 0.973,
+                },
                 {"name": "model1", "status": "NOT_APPLICABLE", "finalScore": 0},
             ],
         },
@@ -227,7 +237,12 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
             "metadata": {"finalScore": 12.3},
         },
         "models": [
-            {"name": "model1", "status": "AUTHENTIC", "finalScore": 97, "predictionNumber": 0.97},
+            {
+                "name": "model1",
+                "status": "AUTHENTIC",
+                "finalScore": 97,
+                "predictionNumber": 0.97,
+            },
             {
                 "name": "model2",
                 "status": "COMPLETED",
@@ -258,4 +273,4 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
     assert detection_result["status"] == "AUTHENTIC"
     assert abs((detection_result["score"] or 0) - 0.123) < 0.0001
     assert len(detection_result["models"]) == 2
-    assert [m['score'] for m in detection_result["models"]] == [0.97, None]
+    assert [m["score"] for m in detection_result["models"]] == [0.97, None]
