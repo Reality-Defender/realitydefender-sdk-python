@@ -46,7 +46,6 @@ class RealityDefender(EventEmitter):
         if not api_key:
             raise RealityDefenderError("API key is required", "unauthorized")
 
-        self.atexit_sync_cleanup_registered = False
         self.api_key = api_key
         self.client = create_http_client(
             {"api_key": self.api_key, "base_url": base_url}
@@ -267,7 +266,8 @@ class RealityDefender(EventEmitter):
         polling_task = self.poll_for_results(request_id, polling_interval, timeout)
         self._run_async(polling_task)  # Discard the return value
 
-    def _run_async(self, coro: Coroutine[Any, Any, T]) -> T:
+    @classmethod
+    def _run_async(cls, coro: Coroutine[Any, Any, T]) -> T:
         """
         Run an async coroutine in a new event loop
 
@@ -280,7 +280,6 @@ class RealityDefender(EventEmitter):
         Raises:
             RealityDefenderError: If the async operation fails
         """
-
         try:
             # Get the current event loop, or create a new one if needed
             try:
