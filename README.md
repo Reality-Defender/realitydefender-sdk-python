@@ -31,32 +31,26 @@ async def main():
     print("Initializing Reality Defender SDK...")
     rd = RealityDefender(api_key="your-api-key")
 
-    try:
-        # Upload a file for analysis
-        print("Uploading file for analysis...")
-        response = await rd.upload(file_path="/path/to/your/file.jpg")
-        request_id = response["request_id"]
-        print(f"File uploaded successfully. Request ID: {request_id}")
+    # Upload a file for analysis
+    print("Uploading file for analysis...")
+    response = await rd.upload(file_path="/path/to/your/file.jpg")
+    request_id = response["request_id"]
+    print(f"File uploaded successfully. Request ID: {request_id}")
 
-        # Get results by polling until completion
-        print("Waiting for analysis results...")
-        result = await rd.get_result(request_id)
-        print("Analysis complete!")
+    # Get results by polling until completion
+    print("Waiting for analysis results...")
+    result = await rd.get_result(request_id)
+    print("Analysis complete!")
 
-        # Process the results
-        print("\nResults:")
-        print(f"Status: {result['status']}")
-        print(f"Score: {result['score']}")
+    # Process the results
+    print("\nResults:")
+    print(f"Status: {result['status']}")
+    print(f"Score: {result['score']}")
 
-        # List model results
-        print("\nModel details:")
-        for model in result["models"]:
-            print(f"{model['name']}: {model['status']} (Score: {model['score']})")
-    finally:
-        # Always clean up when done
-        print("Cleaning up resources...")
-        await rd.cleanup()
-        print("Done!")
+    # List model results
+    print("\nModel details:")
+    for model in result["models"]:
+        print(f"{model['name']}: {model['status']} (Score: {model['score']})")
 
 # Run the async function
 asyncio.run(main())
@@ -75,26 +69,20 @@ async def main():
     print("Initializing Reality Defender SDK...")
     rd = RealityDefender(api_key="your-api-key")
 
-    try:
-        # Set up event handlers
-        print("Setting up event handlers...")
-        rd.on("result", lambda result: print(f"Result received: {result['status']} (Score: {result['score']})"))
-        rd.on("error", lambda error: print(f"Error occurred: {error.message}"))
+    # Set up event handlers
+    print("Setting up event handlers...")
+    rd.on("result", lambda result: print(f"Result received: {result['status']} (Score: {result['score']})"))
+    rd.on("error", lambda error: print(f"Error occurred: {error.message}"))
 
-        # Upload and start polling
-        print("Uploading file for analysis...")
-        response = await rd.upload(file_path="/path/to/your/file.jpg")
-        request_id = response["request_id"]
-        print(f"File uploaded successfully. Request ID: {request_id}")
-        
-        print("Starting to poll for results...")
-        await rd.poll_for_results(response["request_id"])
-        print("Polling complete!")
-    finally:
-        # Clean up when done
-        print("Cleaning up resources...")
-        await rd.cleanup()
-        print("Done!")
+    # Upload and start polling
+    print("Uploading file for analysis...")
+    response = await rd.upload(file_path="/path/to/your/file.jpg")
+    request_id = response["request_id"]
+    print(f"File uploaded successfully. Request ID: {request_id}")
+    
+    print("Starting to poll for results...")
+    await rd.poll_for_results(response["request_id"])
+    print("Polling complete!")
 
 # Run the async function
 asyncio.run(main())

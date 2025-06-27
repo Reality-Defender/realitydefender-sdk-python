@@ -71,7 +71,9 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
                 score = None
 
         # Extract active models (not NOT_APPLICABLE)
-        models_data = [m for m in response.get("models", []) if m.get("status") != "NOT_APPLICABLE"]
+        models_data = [
+            m for m in response.get("models", []) if m.get("status") != "NOT_APPLICABLE"
+        ]
 
         # Format models
         models: list[ModelResult] = []

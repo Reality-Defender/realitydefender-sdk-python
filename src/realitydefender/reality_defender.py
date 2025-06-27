@@ -3,16 +3,19 @@ Main RealityDefender class for interacting with the Reality Defender API
 """
 
 import asyncio
+import atexit
 import os
-from typing import Any, Callable, Coroutine, Optional, cast, TypeVar
+from typing import Any, Callable, Coroutine, Optional, TypeVar, cast
 
-from .client import create_http_client
-from .core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT
-from .core.events import EventEmitter
-from .detection.results import get_detection_result
-from .detection.upload import upload_file
-from .errors import RealityDefenderError
-from .types import (
+import asyncio_atexit  # type:ignore
+
+from realitydefender.client import create_http_client
+from realitydefender.core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT
+from realitydefender.core.events import EventEmitter
+from realitydefender.detection.results import get_detection_result
+from realitydefender.detection.upload import upload_file
+from realitydefender.errors import RealityDefenderError
+from realitydefender.types import (
     DetectionResult,
     ErrorHandler,
     ResultHandler,
@@ -47,6 +50,15 @@ class RealityDefender(EventEmitter):
         self.client = create_http_client(
             {"api_key": self.api_key, "base_url": base_url}
         )
+
+        # register handlers to clean anything up at exit
+        atexit.register(self.cleanup_sync)
+
+        try:
+            asyncio_atexit.register(self.cleanup)
+        except RuntimeError:
+            # If there is no async loop running, then we can't register cleanup
+            pass
 
     async def upload(self, file_path: str) -> UploadResult:
         """

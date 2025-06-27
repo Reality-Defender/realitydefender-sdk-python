@@ -26,7 +26,8 @@ keywords = ["deepfake", "ai", "detection", "reality defender", "media authentica
 requires-python = ">=3.9"
 dependencies = [
     "aiohttp>=3.8.0",
-    "certifi>=2025.4.26"
+    "asyncio-atexit>=1.0.1",
+    "certifi>=2025.4.26",
 ]
 license = "Apache-2.0"
 

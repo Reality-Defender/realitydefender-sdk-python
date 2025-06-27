@@ -7,12 +7,8 @@ This example shows how to use the SDK for analyzing videos for deepfakes.
 
 import asyncio
 import os
-import sys
 import time
 from typing import Optional
-
-# Add the parent directory to the Python path so we can import the SDK
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from realitydefender import RealityDefender, RealityDefenderError
 from realitydefender.types import DetectionResult
@@ -113,10 +109,6 @@ async def detect_video_deepfake() -> None:
         print(f"Error: {e.message} (Code: {e.code})")
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
-    finally:
-        # Properly close the client to avoid unclosed session warnings
-        if client:
-            await client.cleanup()
 
 
 if __name__ == "__main__":
