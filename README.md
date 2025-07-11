@@ -132,7 +132,7 @@ Returns a dictionary with detection results:
 
 ```python
 {
-    "status": str,       # Overall status (e.g., "ARTIFICIAL", "AUTHENTIC")
+    "status": str,       # Overall status (e.g., "MANIPULATED", "AUTHENTIC")
     "score": float,      # Overall confidence score (0-1)
     "models": [          # Array of model-specific results
         {

@@ -57,9 +57,9 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
         results_summary = response.get("resultsSummary", {})
         status = results_summary.get("status", "UNKNOWN")
 
-        # Replace FAKE with ARTIFICIAL
+        # Replace FAKE with MANIPULATED
         if status == "FAKE":
-            status = "ARTIFICIAL"
+            status = "MANIPULATED"
 
         # Get the score and normalize it to a float between 0 and 1
         raw_score = results_summary.get("metadata", {}).get("finalScore")
@@ -84,10 +84,10 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
             else:
                 model_score = None
 
-            # Replace FAKE with ARTIFICIAL in model status
+            # Replace FAKE with MANIPULATED in model status
             model_status = model.get("status", "UNKNOWN")
             if model_status == "FAKE":
-                model_status = "ARTIFICIAL"
+                model_status = "MANIPULATED"
 
             models.append(
                 {
@@ -133,6 +133,7 @@ async def get_detection_result(
         try:
             # Get the current media result
             media_result = await get_media_result(client, request_id)
+            print(media_result)
 
             # Format the result
             result = format_result(media_result)

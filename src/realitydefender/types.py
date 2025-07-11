@@ -35,7 +35,7 @@ class DetectionResult(TypedDict):
     """Simplified detection result returned to the user"""
 
     status: str
-    """Overall status determination (e.g., "ARTIFICIAL", "AUTHENTIC")"""
+    """Overall status determination (e.g., "MANIPULATED", "AUTHENTIC")"""
 
     score: Optional[float]
     """Confidence score (0-100, null if processing)"""
