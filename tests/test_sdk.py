@@ -91,13 +91,13 @@ async def test_get_result(
     # Setup mock response
     mock_client.get.return_value = {
         "resultsSummary": {
-            "status": "MANIPULATED",
+            "status": "FAKE",
             "metadata": {"finalScore": 95.5},
         },
         "models": [
             {
                 "name": "model1",
-                "status": "MANIPULATED",
+                "status": "FAKE",
                 "finalScore": 97.3,
                 "predictionNumber": 0.973,
             },
@@ -148,13 +148,13 @@ async def test_poll_for_results(
         },
         {
             "resultsSummary": {
-                "status": "MANIPULATED",
+                "status": "FAKE",
                 "metadata": {"finalScore": 95.5},
             },
             "models": [
                 {
                     "name": "model1",
-                    "status": "MANIPULATED",
+                    "status": "FAKE",
                     "finalScore": 97.3,
                     "predictionNumber": 0.973,
                 },

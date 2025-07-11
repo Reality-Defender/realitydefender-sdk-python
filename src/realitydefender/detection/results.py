@@ -133,6 +133,7 @@ async def get_detection_result(
         try:
             # Get the current media result
             media_result = await get_media_result(client, request_id)
+            print(media_result)
 
             # Format the result
             result = format_result(media_result)
