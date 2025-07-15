@@ -91,13 +91,13 @@ async def test_get_result(
     # Setup mock response
     mock_client.get.return_value = {
         "resultsSummary": {
-            "status": "ARTIFICIAL",
+            "status": "FAKE",
             "metadata": {"finalScore": 95.5},
         },
         "models": [
             {
                 "name": "model1",
-                "status": "ARTIFICIAL",
+                "status": "FAKE",
                 "finalScore": 97.3,
                 "predictionNumber": 0.973,
             },
@@ -128,7 +128,7 @@ async def test_get_result(
 
     # Test getting results
     result = await sdk_instance.get_result("test-request-id")
-    assert result["status"] == "ARTIFICIAL"
+    assert result["status"] == "MANIPULATED"
     assert result["score"] == 0.955
     assert len(result["models"]) == 2
     assert [m["name"] for m in result["models"]] == ["model1", "model2"]
@@ -140,7 +140,7 @@ async def test_poll_for_results(
     sdk_instance: RealityDefender, mock_client: MagicMock
 ) -> None:
     """Test polling for results"""
-    # Setup mock to return 'ANALYZING' first, then 'ARTIFICIAL'
+    # Setup mock to return 'ANALYZING' first, then 'MANIPULATED'
     mock_client.get.side_effect = [
         {
             "resultsSummary": {"status": "ANALYZING", "metadata": {"finalScore": None}},
@@ -148,13 +148,13 @@ async def test_poll_for_results(
         },
         {
             "resultsSummary": {
-                "status": "ARTIFICIAL",
+                "status": "FAKE",
                 "metadata": {"finalScore": 95.5},
             },
             "models": [
                 {
                     "name": "model1",
-                    "status": "ARTIFICIAL",
+                    "status": "FAKE",
                     "finalScore": 97.3,
                     "predictionNumber": 0.973,
                 },
@@ -177,9 +177,9 @@ async def test_poll_for_results(
         mock_emit.assert_called_with(
             "result",
             {
-                "status": "ARTIFICIAL",
+                "status": "MANIPULATED",
                 "score": 0.955,
-                "models": [{"name": "model1", "status": "ARTIFICIAL", "score": 0.973}],
+                "models": [{"name": "model1", "status": "MANIPULATED", "score": 0.973}],
             },
         )
 
