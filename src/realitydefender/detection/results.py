@@ -304,7 +304,10 @@ async def get_detection_results(client: ClientType,
             # Format and return the result
             return format_result_list(media_results)
 
-        except RealityDefenderError:
+        except RealityDefenderError as e:
+            # Don't retry authentication errors - they won't resolve with retries
+            if e.code == "unauthorized":
+                raise
             if attempts < max_attempts - 1:
                 attempts += 1
                 await sleep(polling_interval)
