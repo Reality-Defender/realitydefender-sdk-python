@@ -9,6 +9,7 @@ DEFAULT_API_ENDPOINT = "https://api.prd.realitydefender.xyz"
 API_PATHS = {
     "SIGNED_URL": "/api/files/aws-presigned",
     "MEDIA_RESULT": "/api/media/users",
+    "ALL_MEDIA_RESULTS": "/api/v2/media/users/pages"
 }
 
 # Default polling interval in milliseconds

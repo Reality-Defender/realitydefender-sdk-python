@@ -1,8 +1,8 @@
 """
 Detection results retrieval and processing
 """
-
-from typing import Any, Dict, TypeVar
+from datetime import date
+from typing import Any, Dict, TypeVar, Optional
 
 from realitydefender.client.http_client import HttpClient
 from realitydefender.core.constants import (
@@ -11,7 +11,7 @@ from realitydefender.core.constants import (
     DEFAULT_POLLING_INTERVAL,
 )
 from realitydefender.errors import RealityDefenderError
-from realitydefender.types import DetectionResult, ModelResult
+from realitydefender.types import DetectionResult, ModelResult, DetectionResultList
 from realitydefender.utils.async_utils import sleep
 
 # Generic type for the HTTP client
@@ -39,6 +39,57 @@ async def get_media_result(client: ClientType, request_id: str) -> Dict[str, Any
         raise
     except Exception as e:
         raise RealityDefenderError(f"Failed to get result: {str(e)}", "unknown_error")
+
+
+async def get_media_results(client: ClientType,
+                            page_number: int = 0,
+                            size: int = 10,
+                            name: Optional[str] = None,
+                            start_date: Optional[date] = None,
+                            end_date: Optional[date] = None) -> Dict[str, Any]:
+    """
+    Fetches media results from the specified client with optional filters such as page number, size, name,
+    start date, and end date. This is an asynchronous function and communicates with an external API
+    to retrieve media result data. It accurately handles specific and general exceptions, ensuring proper error
+    reporting in case the request fails.
+
+    Parameters:
+        client: ClientType
+            The client instance used for making HTTP requests to the API.
+        page_number: int, optional
+            The page number of the results to fetch.
+        size: int, optional
+            The number of results to fetch per page.
+        name: str or None, optional
+            Filter results by name.
+        start_date: date or None, optional
+            Filter results that were created or updated starting from this date.
+        end_date: date or None, optional
+            Filter results that were created or updated up until this date.
+
+    Returns:
+        list[dict[str, any]]
+            A list of dictionaries containing the media results retrieved from the API.
+
+    Raises:
+        RealityDefenderError
+            Raised if the request fails or if an unknown error occurs during the process.
+    """
+    try:
+        path = f"{API_PATHS['ALL_MEDIA_RESULTS']}/{page_number}"
+        params = {"size": str(size)}
+        if name:
+            params["name"] = str(name)
+        if start_date:
+            params["startDate"] = start_date.strftime('%Y-%m-%d')
+        if end_date:
+            params["endDate"] = end_date.strftime('%Y-%m-%d')
+
+        return await client.get(path=path, params=params)
+    except RealityDefenderError:
+        raise
+    except Exception as e:
+        raise RealityDefenderError(f"Failed to get results: {str(e)}", "unknown_error")
 
 
 def format_result(response: Dict[str, Any]) -> DetectionResult:
@@ -103,11 +154,41 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     return {"status": "UNKNOWN", "score": None, "models": []}
 
 
+def format_result_list(response: Dict[str, Any]) -> DetectionResultList:
+    """
+    Format the list all media API response into a user-friendly result
+
+    Args:
+        response: Raw API response
+
+    Returns:
+        DetectionResultList: Simplified detection result list
+    Raises:
+    Exception
+        Reraises any exceptions encountered during formatting.
+    """
+    # Handle regular API responses
+    if response is None or any([response.get(x) is None for x in
+                                ["totalItems", "totalPages", "currentPage", "currentPageItemsCount", "mediaList"]]):
+        raise RealityDefenderError("Invalid response from server", "server_error")
+
+    result = DetectionResultList(total_items=response.get("totalItems", 0),
+                                 total_pages=response.get("totalPages", 0),
+                                 current_page=response.get("currentPage", 0),
+                                 current_page_items_count=response.get("currentPageItemsCount", 0),
+                                 items=[])
+
+    for item in response.get("mediaList", []):
+        result.setdefault("items", []).append(format_result(item))
+
+    return result
+
+
 async def get_detection_result(
-    client: ClientType,
-    request_id: str,
-    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-    polling_interval: int = DEFAULT_POLLING_INTERVAL,
+        client: ClientType,
+        request_id: str,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+        polling_interval: int = DEFAULT_POLLING_INTERVAL,
 ) -> DetectionResult:
     """
     Get the detection result for a specific request
@@ -133,7 +214,6 @@ async def get_detection_result(
         try:
             # Get the current media result
             media_result = await get_media_result(client, request_id)
-            print(media_result)
 
             # Format the result
             result = format_result(media_result)
@@ -168,3 +248,75 @@ async def get_detection_result(
     # This should never be reached, but just in case
     media_result = await get_media_result(client, request_id)
     return format_result(media_result)
+
+
+async def get_detection_results(client: ClientType,
+                                page_number: int = 0,
+                                size: int = 10,
+                                name: Optional[str] = None,
+                                start_date: Optional[date] = None,
+                                end_date: Optional[date] = None,
+                                max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+                                polling_interval: int = DEFAULT_POLLING_INTERVAL,
+                                ) -> DetectionResultList:
+    """
+    Retrieves detection results asynchronously based on specified criteria. This function
+    communicates with the client to fetch paginated detection results. Optionally, filters
+    like name, start_date, and end_date can be applied. It also retries fetching in case
+    of failures up to the specified maximum attempts, with a defined polling interval
+    between retries.
+
+    Parameters:
+    client: ClientType
+        The client instance used for communication.
+    page_number: int
+        The page index to retrieve. Defaults to 0.
+    size: int
+        The number of results per page. Defaults to 10.
+    name: str | None
+        An optional filter to retrieve results by a specific name. Defaults to None.
+    start_date: Optional[datetime.date]
+        An optional filter to specify the earliest date for detection results. Defaults to None.
+    end_date: Optional[datetime.date]
+        An optional filter to specify the latest date for detection results. Defaults to None.
+    max_attempts: int
+        The maximum number of attempts to fetch the results in case of intermittent issues.
+         Defaults to the value of DEFAULT_MAX_ATTEMPTS.
+    polling_interval: int
+        The interval in seconds between retries when fetching results.
+        Defaults to the value of DEFAULT_POLLING_INTERVAL.
+
+    Returns:
+    DetectionResultList
+        A list containing detection results that match the specified criteria.
+
+    Raises:
+    Exception
+        Reraises any exceptions encountered during the fetching or retry operations.
+    """
+    attempts = 0
+
+    while attempts < max_attempts:
+        try:
+            # Get the current media result
+            media_results = await get_media_results(client, page_number, size, name, start_date, end_date)
+
+            # Format and return the result
+            return format_result_list(media_results)
+
+        except RealityDefenderError:
+            if attempts < max_attempts - 1:
+                attempts += 1
+                await sleep(polling_interval)
+                continue
+            raise
+
+        except Exception as e:
+            # Convert other errors to SDK errors
+            raise RealityDefenderError(
+                f"Failed to get detection result list: {str(e)}", "server_error"
+            )
+
+    raise RealityDefenderError(
+        f"Failed to get detection result list after {attempts} attempts", "timeout"
+    )

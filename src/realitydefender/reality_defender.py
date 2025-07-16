@@ -99,10 +99,10 @@ class RealityDefender(EventEmitter):
         return self._run_async(self.upload(file_path))
 
     async def get_result(
-        self,
-        request_id: str,
-        max_attempts: int = DEFAULT_POLLING_INTERVAL,
-        polling_interval: int = DEFAULT_POLLING_INTERVAL,
+            self,
+            request_id: str,
+            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (async version)
@@ -123,10 +123,10 @@ class RealityDefender(EventEmitter):
         )
 
     def get_result_sync(
-        self,
-        request_id: str,
-        max_attempts: int = DEFAULT_POLLING_INTERVAL,
-        polling_interval: int = DEFAULT_POLLING_INTERVAL,
+            self,
+            request_id: str,
+            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (synchronous version)
@@ -174,10 +174,10 @@ class RealityDefender(EventEmitter):
         return self.get_result_sync(request_id)
 
     async def poll_for_results(
-        self,
-        request_id: str,
-        polling_interval: Optional[int] = None,
-        timeout: Optional[int] = None,
+            self,
+            request_id: str,
+            polling_interval: Optional[int] = None,
+            timeout: Optional[int] = None,
     ) -> None:
         """
         Start polling for results with event-based callback (async version)
@@ -234,13 +234,13 @@ class RealityDefender(EventEmitter):
             )
 
     def poll_for_results_sync(
-        self,
-        request_id: str,
-        *,  # Force keyword arguments for better readability
-        polling_interval: Optional[int] = None,
-        timeout: Optional[int] = None,
-        on_result: Optional[Callable[[DetectionResult], None]] = None,
-        on_error: Optional[Callable[[RealityDefenderError], None]] = None,
+            self,
+            request_id: str,
+            *,  # Force keyword arguments for better readability
+            polling_interval: Optional[int] = None,
+            timeout: Optional[int] = None,
+            on_result: Optional[Callable[[DetectionResult], None]] = None,
+            on_error: Optional[Callable[[RealityDefenderError], None]] = None,
     ) -> None:
         """
         Start polling for results with synchronous callbacks
@@ -325,7 +325,10 @@ class RealityDefender(EventEmitter):
         This should be called when you're done using the SDK to ensure all resources
         are properly released.
         """
-        self._run_async(self.cleanup())  # Discard the return value
+        try:
+            self._run_async(self.cleanup())  # Discard the return value
+        except RealityDefenderError:
+            pass
 
     def __del__(self) -> None:
         """

@@ -44,12 +44,31 @@ class DetectionResult(TypedDict):
     """Results from individual detection models"""
 
 
+class DetectionResultList(TypedDict):
+    """List of detection results"""
+
+    total_items: int
+    """Total number of detection results"""
+
+    current_page_items_count: int
+    """Number of detection results on the current page"""
+
+    total_pages: int
+    """Total number of pages"""
+
+    current_page: int
+    """Current page number"""
+
+    items: List[DetectionResult]
+    """List of detection results"""
+
+
 # Protocol for event handlers
 class ResultHandler(Protocol):
     """Event handler for detection results"""
 
     def __call__(
-        self, result: Any
+            self, result: Any
     ) -> None: ...  # Use Any instead of DetectionResult to avoid type errors
 
 
