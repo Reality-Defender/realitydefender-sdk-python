@@ -11,7 +11,7 @@ from typing import Any, Callable, Coroutine, Optional, TypeVar, cast
 import asyncio_atexit  # type:ignore
 
 from realitydefender.client import create_http_client
-from realitydefender.core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT
+from realitydefender.core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT, DEFAULT_MAX_ATTEMPTS
 from realitydefender.core.events import EventEmitter
 from realitydefender.detection.results import get_detection_result, get_detection_results
 from realitydefender.detection.upload import upload_file
@@ -102,7 +102,7 @@ class RealityDefender(EventEmitter):
     async def get_result(
             self,
             request_id: str,
-            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
             polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
@@ -130,7 +130,7 @@ class RealityDefender(EventEmitter):
             name: Optional[str] = None,
             start_date: Optional[date] = None,
             end_date: Optional[date] = None,
-            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
             polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResultList:
         """
@@ -169,7 +169,7 @@ class RealityDefender(EventEmitter):
     def get_result_sync(
             self,
             request_id: str,
-            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
             polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
@@ -198,7 +198,7 @@ class RealityDefender(EventEmitter):
             name: Optional[str] = None,
             start_date: Optional[date] = None,
             end_date: Optional[date] = None,
-            max_attempts: int = DEFAULT_POLLING_INTERVAL,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
             polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResultList:
         """
