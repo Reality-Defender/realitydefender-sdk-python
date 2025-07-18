@@ -5,21 +5,22 @@ Main RealityDefender class for interacting with the Reality Defender API
 import asyncio
 import atexit
 import os
+from datetime import date
 from typing import Any, Callable, Coroutine, Optional, TypeVar, cast
 
 import asyncio_atexit  # type:ignore
 
 from realitydefender.client import create_http_client
-from realitydefender.core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT
+from realitydefender.core.constants import DEFAULT_POLLING_INTERVAL, DEFAULT_TIMEOUT, DEFAULT_MAX_ATTEMPTS
 from realitydefender.core.events import EventEmitter
-from realitydefender.detection.results import get_detection_result
+from realitydefender.detection.results import get_detection_result, get_detection_results
 from realitydefender.detection.upload import upload_file
 from realitydefender.errors import RealityDefenderError
 from realitydefender.types import (
     DetectionResult,
     ErrorHandler,
     ResultHandler,
-    UploadResult,
+    UploadResult, DetectionResultList,
 )
 
 T = TypeVar("T")
@@ -99,10 +100,10 @@ class RealityDefender(EventEmitter):
         return self._run_async(self.upload(file_path))
 
     async def get_result(
-        self,
-        request_id: str,
-        max_attempts: int = DEFAULT_POLLING_INTERVAL,
-        polling_interval: int = DEFAULT_POLLING_INTERVAL,
+            self,
+            request_id: str,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (async version)
@@ -122,11 +123,54 @@ class RealityDefender(EventEmitter):
             polling_interval=polling_interval,
         )
 
+    async def get_results(
+            self,
+            page_number: int = 0,
+            size: int = 10,
+            name: Optional[str] = None,
+            start_date: Optional[date] = None,
+            end_date: Optional[date] = None,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
+    ) -> DetectionResultList:
+        """
+        Fetches the results of detections from the client asynchronously with pagination, date
+        range filter, and optional polling settings.
+
+        The method retrieves and returns a list of detection results by communicating
+        with the client. It supports pagination to limit the number of results fetched
+        per request and date filtering based on optional start and end dates. The method
+        also allows configuring maximum polling attempts and intervals for the operation.
+
+        Parameters:
+            page_number (int): The zero-based index specifying the page of results to fetch.
+            size (int): The number of results to include in the response per page.
+            name (Optional[str]): An optional filter to search for specific detection by name.
+            start_date (Optional[date]): The start date for filtering results (inclusive).
+            end_date (Optional[date]): The end date for filtering results (inclusive).
+            max_attempts (int): The maximum number of polling attempts to be performed.
+            polling_interval (int): The interval duration (in seconds) between poll attempts.
+
+        Returns:
+            DetectionResultList: A list containing the detection results fetched
+            as per the specified parameters.
+        """
+        return await get_detection_results(
+            self.client,
+            page_number=page_number,
+            size=size,
+            name=name,
+            start_date=start_date,
+            end_date=end_date,
+            max_attempts=max_attempts,
+            polling_interval=polling_interval,
+        )
+
     def get_result_sync(
-        self,
-        request_id: str,
-        max_attempts: int = DEFAULT_POLLING_INTERVAL,
-        polling_interval: int = DEFAULT_POLLING_INTERVAL,
+            self,
+            request_id: str,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
     ) -> DetectionResult:
         """
         Get the detection result for a specific request ID (synchronous version)
@@ -144,6 +188,48 @@ class RealityDefender(EventEmitter):
         return self._run_async(
             self.get_result(
                 request_id, max_attempts=max_attempts, polling_interval=polling_interval
+            )
+        )
+
+    def get_results_sync(
+            self,
+            page_number: int = 0,
+            size: int = 10,
+            name: Optional[str] = None,
+            start_date: Optional[date] = None,
+            end_date: Optional[date] = None,
+            max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+            polling_interval: int = DEFAULT_POLLING_INTERVAL,
+    ) -> DetectionResultList:
+        """
+        Fetches a list of detection results synchronously with optional parameters for filtering and pagination.
+
+        This method allows querying for detection results with flexible options, such as specifying a page number,
+        page size, filtering by name, and limiting results to a specific date range. Additionally, it includes
+        parameters for controlling polling behavior, including maximum attempts and interval duration.
+
+        Parameters:
+            page_number (int): The page number to retrieve. Defaults to 0.
+            size (int): The number of results per page. Defaults to 10.
+            name (Optional[str]): The name to filter results by. Defaults to None.
+            start_date (Optional[date]): The start date to filter results by. Defaults to None.
+            end_date (Optional[date]): The end date to filter results by. Defaults to None.
+            max_attempts (int): The maximum number of polling attempts. Defaults to DEFAULT_POLLING_INTERVAL.
+            polling_interval (int): The interval (in seconds) between polling attempts.
+            Defaults to DEFAULT_POLLING_INTERVAL.
+
+        Returns:
+            DetectionResultList: A list of detection results matching the provided filters and pagination criteria.
+        """
+        return self._run_async(
+            self.get_results(
+                page_number=page_number,
+                size=size,
+                name=name,
+                start_date=start_date,
+                end_date=end_date,
+                max_attempts=max_attempts,
+                polling_interval=polling_interval,
             )
         )
 
@@ -174,10 +260,10 @@ class RealityDefender(EventEmitter):
         return self.get_result_sync(request_id)
 
     async def poll_for_results(
-        self,
-        request_id: str,
-        polling_interval: Optional[int] = None,
-        timeout: Optional[int] = None,
+            self,
+            request_id: str,
+            polling_interval: Optional[int] = None,
+            timeout: Optional[int] = None,
     ) -> None:
         """
         Start polling for results with event-based callback (async version)
@@ -234,13 +320,13 @@ class RealityDefender(EventEmitter):
             )
 
     def poll_for_results_sync(
-        self,
-        request_id: str,
-        *,  # Force keyword arguments for better readability
-        polling_interval: Optional[int] = None,
-        timeout: Optional[int] = None,
-        on_result: Optional[Callable[[DetectionResult], None]] = None,
-        on_error: Optional[Callable[[RealityDefenderError], None]] = None,
+            self,
+            request_id: str,
+            *,  # Force keyword arguments for better readability
+            polling_interval: Optional[int] = None,
+            timeout: Optional[int] = None,
+            on_result: Optional[Callable[[DetectionResult], None]] = None,
+            on_error: Optional[Callable[[RealityDefenderError], None]] = None,
     ) -> None:
         """
         Start polling for results with synchronous callbacks
@@ -325,7 +411,10 @@ class RealityDefender(EventEmitter):
         This should be called when you're done using the SDK to ensure all resources
         are properly released.
         """
-        self._run_async(self.cleanup())  # Discard the return value
+        try:
+            self._run_async(self.cleanup())  # Discard the return value
+        except RealityDefenderError:
+            pass
 
     def __del__(self) -> None:
         """

@@ -1,8 +1,8 @@
 """
 Tests for the main SDK functionality
 """
-
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import date
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import pytest_asyncio
@@ -13,22 +13,23 @@ from realitydefender import (
     get_detection_result,
     upload_file,
 )
+from realitydefender.detection.results import get_detection_results, format_result_list, get_media_results
 
 
 @pytest.fixture
-def mock_client() -> MagicMock:
+def mock_client() -> AsyncMock:
     """Create a mock HTTP client"""
-    client = MagicMock()
+    client = AsyncMock()
     client.get = AsyncMock()
     client.post = AsyncMock()
     return client
 
 
 @pytest_asyncio.fixture
-async def sdk_instance(mock_client: MagicMock) -> RealityDefender:
+async def sdk_instance(mock_client: AsyncMock) -> RealityDefender:
     """Create a patched SDK instance with a mock client"""
     with patch(
-        "realitydefender.reality_defender.create_http_client", return_value=mock_client
+            "realitydefender.reality_defender.create_http_client", return_value=mock_client
     ):
         sdk = RealityDefender(api_key="test-api-key")
         sdk.client = mock_client
@@ -40,7 +41,7 @@ async def test_sdk_initialization() -> None:
     """Test SDK initialization"""
     # Test with valid API key
     with patch(
-        "realitydefender.reality_defender.create_http_client"
+            "realitydefender.reality_defender.create_http_client"
     ) as mock_create_client:
         sdk = RealityDefender(api_key="test-api-key")
         mock_create_client.assert_called_once()
@@ -53,7 +54,7 @@ async def test_sdk_initialization() -> None:
 
 
 @pytest.mark.asyncio
-async def test_upload(sdk_instance: RealityDefender, mock_client: MagicMock) -> None:
+async def test_upload(sdk_instance: RealityDefender, mock_client: AsyncMock) -> None:
     """Test file upload functionality"""
     # Setup mock response
     mock_client.post.return_value = {
@@ -85,7 +86,7 @@ async def test_upload(sdk_instance: RealityDefender, mock_client: MagicMock) -> 
 
 @pytest.mark.asyncio
 async def test_get_result(
-    sdk_instance: RealityDefender, mock_client: MagicMock
+        sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test getting detection results"""
     # Setup mock response
@@ -137,7 +138,7 @@ async def test_get_result(
 
 @pytest.mark.asyncio
 async def test_poll_for_results(
-    sdk_instance: RealityDefender, mock_client: MagicMock
+        sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test polling for results"""
     # Setup mock to return 'ANALYZING' first, then 'MANIPULATED'
@@ -164,7 +165,7 @@ async def test_poll_for_results(
     ]
 
     # Mock the emit method
-    mock_emit = MagicMock()
+    mock_emit = AsyncMock()
     with patch.object(sdk_instance, "emit", mock_emit):
         # Test polling
         with patch("asyncio.sleep", AsyncMock()):
@@ -186,14 +187,14 @@ async def test_poll_for_results(
 
 @pytest.mark.asyncio
 async def test_poll_for_results_error(
-    sdk_instance: RealityDefender, mock_client: MagicMock
+        sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test polling with errors"""
     # Set up error to be emitted
     mock_client.get.side_effect = RealityDefenderError("Not found", "not_found")
 
     # Mock the emit method
-    mock_emit = MagicMock()
+    mock_emit = AsyncMock()
     with patch.object(sdk_instance, "emit", mock_emit):
         # Test polling with not_found error
         with patch("asyncio.sleep", AsyncMock()):
@@ -210,7 +211,7 @@ async def test_poll_for_results_error(
 
 
 @pytest.mark.asyncio
-async def test_direct_functions(mock_client: MagicMock) -> None:
+async def test_direct_functions(mock_client: AsyncMock) -> None:
     """Test direct function usage"""
     # Setup mock response for upload
     mock_client.post.return_value = {
@@ -274,3 +275,128 @@ async def test_direct_functions(mock_client: MagicMock) -> None:
     assert abs((detection_result["score"] or 0) - 0.123) < 0.0001
     assert len(detection_result["models"]) == 2
     assert [m["score"] for m in detection_result["models"]] == [0.97, None]
+
+
+@pytest.mark.asyncio
+async def test_get_media_results_success(mock_client: AsyncMock) -> None:
+    """Test successful media results retrieval"""
+    mock_response = {"totalItems": 10, "mediaList": []}
+    mock_client.get.return_value = mock_response
+
+    result = await get_media_results(mock_client, page_number=1, size=5)
+
+    mock_client.get.assert_called_once_with(
+        path="/api/v2/media/users/pages/1",
+        params={"size": "5"}
+    )
+    assert result == mock_response
+
+
+@pytest.mark.asyncio
+async def test_get_media_results_with_filters(mock_client: AsyncMock) -> None:
+    """Test media results with date and name filters"""
+    mock_client.get.return_value = {"totalItems": 1, "mediaList": []}
+
+    start_date = date(2023, 1, 1)
+    end_date = date(2023, 12, 31)
+
+    await get_media_results(mock_client, name="test", start_date=start_date, end_date=end_date)
+
+    mock_client.get.assert_called_once_with(
+        path="/api/v2/media/users/pages/0",
+        params={
+            "size": "10",
+            "name": "test",
+            "startDate": "2023-01-01",
+            "endDate": "2023-12-31"
+        }
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_media_results_error_handling(mock_client: AsyncMock) -> None:
+    """Test error handling in get_media_results"""
+    mock_client.get.side_effect = Exception("Network error")
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await get_media_results(mock_client)
+
+    assert exc_info.value.code == "unknown_error"
+
+
+def test_format_result_list_success() -> None:
+    """Test successful formatting of result list"""
+    response = {
+        "totalItems": 1,
+        "totalPages": 1,
+        "currentPage": 0,
+        "currentPageItemsCount": 1,
+        "mediaList": [
+            {
+                "resultsSummary": {"status": "REAL", "metadata": {"finalScore": 10}},
+                "models": [{"name": "face", "status": "REAL", "predictionNumber": 0.1}]
+            }
+        ]
+    }
+
+    result = format_result_list(response)
+
+    assert result["total_items"] == 1
+    assert len(result["items"]) == 1
+    assert result["items"][0]["status"] == "REAL"
+
+
+@pytest.mark.asyncio
+async def test_get_detection_results_success(mock_client: AsyncMock) -> None:
+    """Test successful detection results retrieval"""
+    mock_response = {
+        "totalItems": 1,
+        "totalPages": 1,
+        "currentPage": 0,
+        "currentPageItemsCount": 1,
+        "mediaList": [
+            {
+                "resultsSummary": {"status": "AUTHENTIC", "metadata": {"finalScore": 10}},
+                "models": [{"name": "face", "status": "AUTHENTIC", "predictionNumber": 0.1}]
+            }
+        ]
+    }
+    mock_client.get.return_value = mock_response
+
+    result = await get_detection_results(mock_client)
+
+    assert result["total_items"] == 1
+    assert len(result["items"]) == 1
+    assert result["items"][0]["status"] == "AUTHENTIC"
+    assert result["items"][0]["score"] == 0.1
+
+
+@pytest.mark.asyncio
+async def test_get_detection_results_retry_logic(mock_client: AsyncMock) -> None:
+    """Test retry logic in get_detection_results"""
+    mock_client.get.side_effect = [
+        RealityDefenderError("Temporary error", "server_error"),
+        {
+            "totalItems": 1,
+            "totalPages": 1,
+            "currentPage": 0,
+            "currentPageItemsCount": 1,
+            "mediaList": []
+        }
+    ]
+
+    result = await get_detection_results(mock_client, max_attempts=2, polling_interval=1)
+
+    assert mock_client.get.call_count == 2
+    assert result["total_items"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_detection_results_error_handling(mock_client: AsyncMock) -> None:
+    """Test error handling in get_detection_results"""
+    mock_client.get.side_effect = Exception("Network error")
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await get_detection_results(mock_client, max_attempts=2, polling_interval=1)
+
+    assert exc_info.value.code == "unknown_error"
