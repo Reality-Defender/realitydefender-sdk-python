@@ -20,3 +20,11 @@ DEFAULT_TIMEOUT = 60000
 
 # Default maximum polling attempts
 DEFAULT_MAX_ATTEMPTS = 30
+
+# Supported file types and maximum sizes for each one of them.
+SUPPORTED_FILE_TYPES: list[dict] = [
+    {"extensions": [".mp4", ".mov"], "size_limit": 262144000},
+    {"extensions": [".jpg", ".png", ".jpeg", ".gif", ".webp"], "size_limit": 52428800},
+    {"extensions": [".flac", ".wav", ".mp3", ".m4a", ".aac", ".alac", ".ogg"], "size_limit": 20971520},
+    {"extensions": [".txt"], "size_limit": 5242880}
+]
