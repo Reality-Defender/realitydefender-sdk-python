@@ -33,9 +33,9 @@ jobs:
         run: |
           uv sync --all-extras --dev
 
-      - name: Lint with flake8
+      - name: Lint with Ruff
         run: |
-          uv run flake8 src tests examples
+          uv run ruff check
 
       - name: Type check with mypy
         run: |

@@ -10,6 +10,7 @@ ErrorCode = Literal[
     "server_error",  # Server-side error occurred
     "timeout",  # Operation timed out
     "invalid_file",  # File not found or invalid format
+    "file_too_large", # File too large to upload.
     "upload_failed",  # Failed to upload the file
     "not_found",  # Requested resource not found
     "unknown_error",  # Unexpected error

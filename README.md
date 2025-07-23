@@ -26,6 +26,7 @@ This approach uses direct polling to wait for the analysis results.
 import asyncio
 from realitydefender import RealityDefender
 
+
 async def main():
     # Initialize the SDK with your API key
     print("Initializing Reality Defender SDK...")
@@ -52,6 +53,7 @@ async def main():
     for model in result["models"]:
         print(f"{model['name']}: {model['status']} (Score: {model['score']})")
 
+
 # Run the async function
 asyncio.run(main())
 ```
@@ -63,6 +65,7 @@ This approach uses event handlers to process results when they become available.
 ```python
 import asyncio
 from realitydefender import RealityDefender
+
 
 async def main():
     # Initialize the SDK
@@ -79,10 +82,11 @@ async def main():
     response = await rd.upload(file_path="/path/to/your/file.jpg")
     request_id = response["request_id"]
     print(f"File uploaded successfully. Request ID: {request_id}")
-    
+
     print("Starting to poll for results...")
     await rd.poll_for_results(response["request_id"])
     print("Polling complete!")
+
 
 # Run the async function
 asyncio.run(main())
@@ -106,7 +110,7 @@ The Reality Defender SDK uses asynchronous operations throughout.
 
 ```python
 rd = RealityDefender(
-    api_key="your-api-key",               # Required: Your API key
+    api_key="your-api-key",  # Required: Your API key
 )
 ```
 
@@ -114,7 +118,7 @@ rd = RealityDefender(
 
 ```python
 # Must be called from within an async function
-response = await rd.upload(file_path="/path/to/file.jpg")     # Required: Path to the file to analyze
+response = await rd.upload(file_path="/path/to/file.jpg")  # Required: Path to the file to analyze
 )
 ```
 
@@ -132,13 +136,13 @@ Returns a dictionary with detection results:
 
 ```python
 {
-    "status": str,       # Overall status (e.g., "MANIPULATED", "AUTHENTIC")
-    "score": float,      # Overall confidence score (0-1)
-    "models": [          # Array of model-specific results
+    "status": str,  # Overall status (e.g., "MANIPULATED", "AUTHENTIC")
+    "score": float,  # Overall confidence score (0-1)
+    "models": [  # Array of model-specific results
         {
-            "name": str,     # Model name
-            "status": str,   # Model-specific status
-            "score": float   # Model-specific score (0-1)
+            "name": str,  # Model name
+            "status": str,  # Model-specific status
+            "score": float  # Model-specific score (0-1)
         }
     ]
 }
@@ -170,6 +174,17 @@ except RealityDefenderError as error:
     # Error codes: 'unauthorized', 'server_error', 'timeout', 
     # 'invalid_file', 'upload_failed', 'not_found', 'unknown_error'
 ```
+
+## Supported file types and size limits
+
+There is a size limit for each of the supported file types.
+
+| File Type | Extensions                                 | Size Limit (bytes) | Size Limit (MB) |
+|-----------|--------------------------------------------|--------------------|-----------------|
+| Video     | .mp4, .mov                                 | 262,144,000        | 250 MB          |
+| Image     | .jpg, .png, .jpeg, .gif, .webp             | 52,428,800         | 50 MB           |
+| Audio     | .flac, .wav, .mp3, .m4a, .aac, .alac, .ogg | 20,971,520         | 20 MB           |
+| Text      | .txt                                       | 5,242,880          | 5 MB            |
 
 ## Examples
 

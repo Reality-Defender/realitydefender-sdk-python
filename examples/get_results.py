@@ -117,7 +117,7 @@ async def async_example() -> None:
 
         # Example showing pagination
         if results['total_pages'] > 1:
-            print(f"\n\nFetching page 2 of results...")
+            print("\n\nFetching page 2 of results...")
             page2_results = await client.get_results(page_number=1, size=5)
             print_results(page2_results)
 
