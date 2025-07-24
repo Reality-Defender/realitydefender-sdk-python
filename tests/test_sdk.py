@@ -144,10 +144,12 @@ async def test_poll_for_results(
     # Setup mock to return 'ANALYZING' first, then 'MANIPULATED'
     mock_client.get.side_effect = [
         {
+            "requestId": "test-request-id-1",
             "resultsSummary": {"status": "ANALYZING", "metadata": {"finalScore": None}},
             "models": [],
         },
         {
+            "requestId": "test-request-id-2",
             "resultsSummary": {
                 "status": "FAKE",
                 "metadata": {"finalScore": 95.5},
@@ -178,6 +180,7 @@ async def test_poll_for_results(
         mock_emit.assert_called_with(
             "result",
             {
+                "request_id": "test-request-id-2",
                 "status": "MANIPULATED",
                 "score": 0.955,
                 "models": [{"name": "model1", "status": "MANIPULATED", "score": 0.973}],

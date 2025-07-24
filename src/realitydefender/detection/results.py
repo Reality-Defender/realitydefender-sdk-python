@@ -104,6 +104,8 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     """
 
     # Handle regular API responses
+    request_id: str = response.get("requestId", "UNKNOWN")
+
     if "resultsSummary" in response:
         results_summary = response.get("resultsSummary", {})
         status = results_summary.get("status", "UNKNOWN")
@@ -148,10 +150,10 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
                 }
             )
 
-        return {"status": status, "score": score, "models": models}
+        return {"request_id": request_id, "status": status, "score": score, "models": models}
 
     # Return a default empty result if we couldn't parse the response
-    return {"status": "UNKNOWN", "score": None, "models": []}
+    return {"request_id": request_id, "status": "UNKNOWN", "score": None, "models": []}
 
 
 def format_result_list(response: Dict[str, Any]) -> DetectionResultList:
