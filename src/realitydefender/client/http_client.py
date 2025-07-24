@@ -9,8 +9,8 @@ import aiohttp
 import ssl
 import certifi
 
-from ..core.constants import DEFAULT_API_ENDPOINT
-from ..errors import RealityDefenderError
+from realitydefender.core.constants import DEFAULT_API_ENDPOINT
+from realitydefender.errors import RealityDefenderError
 
 
 class ClientConfig(TypedDict, total=False):
@@ -33,7 +33,7 @@ class HttpClient:
             config: Configuration including API key and base URL
         """
         self.api_key = config["api_key"]
-        self.base_url = config.get("base_url") or DEFAULT_API_ENDPOINT
+        self.base_url = config.get("base_url", DEFAULT_API_ENDPOINT)
         self.session: Optional[aiohttp.ClientSession] = None
 
     async def ensure_session(self) -> aiohttp.ClientSession:
@@ -139,6 +139,19 @@ class HttpClient:
         Raises:
             RealityDefenderError: If the response contains an error
         """
+
+        # Handle free tier error individually for better visibility.
+        if response.status == 400:
+            error_data = await response.json()
+            code: str = error_data.get("error", {}).get("code", "unknown_error")
+            if "free-tier-not-allowed" in code:
+                raise RealityDefenderError(
+                    "Unauthorized: Paid plan required", "unauthorized"
+                )
+            else:
+                message = error_data.get("error", {}).get("message", "Unknown error")
+                raise RealityDefenderError(f"API error: {message}", "server_error")
+
         if response.status == 404:
             raise RealityDefenderError("Resource not found", "not_found")
 
@@ -147,7 +160,7 @@ class HttpClient:
                 "Unauthorized - check your API key", "unauthorized"
             )
 
-        if response.status >= 400:
+        if response.status > 400:
             try:
                 error_data = await response.json()
                 message = error_data.get("error", {}).get("message", "Unknown error")
