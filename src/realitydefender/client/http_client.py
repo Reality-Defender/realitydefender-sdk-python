@@ -144,14 +144,11 @@ class HttpClient:
         if response.status == 400:
             error_data = await response.json()
             code: str = error_data.get("error", {}).get("code", "unknown_error")
+            message = error_data.get("error", {}).get("message", "Unknown error")
             if "free-tier-not-allowed" in code:
-                raise RealityDefenderError(
-                    "Unauthorized: Paid plan required", "unauthorized"
-                )
+                raise RealityDefenderError(message, "unauthorized")
             else:
-                message = error_data.get("error", {}).get("message", "Unknown error")
                 raise RealityDefenderError(f"API error: {message}", "server_error")
-
         if response.status == 404:
             raise RealityDefenderError("Resource not found", "not_found")
 

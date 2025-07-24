@@ -96,7 +96,7 @@ async def test_handle_response_400_free_tier_error(http_client: HttpClient) -> N
         return_value={
             "error": {
                 "code": "free-tier-not-allowed",
-                "message": "This feature requires a paid plan",
+                "message": "Error: paid plan required",
             }
         }
     )
@@ -105,7 +105,7 @@ async def test_handle_response_400_free_tier_error(http_client: HttpClient) -> N
         await http_client._handle_response(mock_response)
 
     assert exc_info.value.code == "unauthorized"
-    assert "Unauthorized: Paid plan required" in str(exc_info.value)
+    assert "Error: paid plan required" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
