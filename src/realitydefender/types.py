@@ -34,6 +34,9 @@ class ModelResult(TypedDict):
 class DetectionResult(TypedDict):
     """Simplified detection result returned to the user"""
 
+    request_id: str
+    """ The request ID that initiated the detection process """
+
     status: str
     """Overall status determination (e.g., "MANIPULATED", "AUTHENTIC")"""
 

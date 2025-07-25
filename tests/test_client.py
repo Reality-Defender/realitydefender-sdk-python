@@ -88,6 +88,75 @@ async def test_get_error(http_client: HttpClient, mock_response: AsyncMock) -> N
 
 
 @pytest.mark.asyncio
+async def test_handle_response_400_free_tier_error(http_client: HttpClient) -> None:
+    """Test 400 response with free-tier-not-allowed error code"""
+    mock_response = AsyncMock(spec=aiohttp.ClientResponse)
+    mock_response.status = 400
+    mock_response.json = AsyncMock(
+        return_value={
+            "error": {
+                "code": "free-tier-not-allowed",
+                "message": "Error: paid plan required",
+            }
+        }
+    )
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await http_client._handle_response(mock_response)
+
+    assert exc_info.value.code == "unauthorized"
+    assert "Error: paid plan required" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_handle_response_400_other_error(http_client: HttpClient) -> None:
+    """Test 400 response with non-free-tier error"""
+    mock_response = AsyncMock(spec=aiohttp.ClientResponse)
+    mock_response.status = 400
+    mock_response.json = AsyncMock(
+        return_value={
+            "error": {"code": "validation-error", "message": "Invalid file format"}
+        }
+    )
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await http_client._handle_response(mock_response)
+
+    assert exc_info.value.code == "server_error"
+    assert "API error: Invalid file format" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_handle_response_400_missing_error_structure(
+    http_client: HttpClient,
+) -> None:
+    """Test 400 response with malformed error structure"""
+    mock_response = AsyncMock(spec=aiohttp.ClientResponse)
+    mock_response.status = 400
+    mock_response.json = AsyncMock(return_value={"some_other_field": "value"})
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await http_client._handle_response(mock_response)
+
+    assert exc_info.value.code == "server_error"
+    assert "API error: Unknown error" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_handle_response_400_empty_error_fields(http_client: HttpClient) -> None:
+    """Test 400 response with empty error code and message"""
+    mock_response = AsyncMock(spec=aiohttp.ClientResponse)
+    mock_response.status = 400
+    mock_response.json = AsyncMock(return_value={"error": {}})
+
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await http_client._handle_response(mock_response)
+
+    assert exc_info.value.code == "server_error"
+    assert "API error: Unknown error" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
 async def test_post_success(http_client: HttpClient, mock_response: AsyncMock) -> None:
     """Test successful POST request"""
     with patch("aiohttp.ClientSession.post", return_value=mock_response):
