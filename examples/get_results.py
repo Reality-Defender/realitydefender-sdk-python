@@ -12,7 +12,7 @@ from datetime import date, timedelta
 from typing import Optional
 
 from realitydefender import RealityDefender, RealityDefenderError
-from realitydefender.types import DetectionResultList
+from realitydefender.model import DetectionResultList
 
 
 def format_score(score: Optional[float]) -> str:

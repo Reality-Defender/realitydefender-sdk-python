@@ -11,7 +11,7 @@ import time
 from typing import Optional
 
 from realitydefender import RealityDefender, RealityDefenderError
-from realitydefender.types import DetectionResult
+from realitydefender.model import DetectionResult
 
 
 def format_score(score: Optional[float]) -> str:

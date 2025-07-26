@@ -13,7 +13,7 @@ from realitydefender.detection.upload import (
     upload_file,
 )
 from realitydefender.errors import RealityDefenderError
-from realitydefender.types import UploadResult
+from realitydefender.model import UploadResult
 
 
 @pytest.fixture

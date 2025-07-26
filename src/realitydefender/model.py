@@ -71,7 +71,7 @@ class ResultHandler(Protocol):
     """Event handler for detection results"""
 
     def __call__(
-            self, result: Any
+        self, result: Any
     ) -> None: ...  # Use Any instead of DetectionResult to avoid type errors
 
 

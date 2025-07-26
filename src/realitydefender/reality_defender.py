@@ -16,7 +16,7 @@ from realitydefender.core.events import EventEmitter
 from realitydefender.detection.results import get_detection_result, get_detection_results
 from realitydefender.detection.upload import upload_file
 from realitydefender.errors import RealityDefenderError
-from realitydefender.types import (
+from realitydefender.model import (
     DetectionResult,
     ErrorHandler,
     ResultHandler,
