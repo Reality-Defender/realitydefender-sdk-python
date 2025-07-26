@@ -118,8 +118,8 @@ async def test_handle_response_400_other_error(http_client: HttpClient) -> None:
     with pytest.raises(RealityDefenderError) as exc_info:
         await http_client._handle_response(mock_response)
 
-    assert exc_info.value.code == "server_error"
-    assert "Bad request: Invalid file format" in str(exc_info.value)
+    assert exc_info.value.code == "invalid_request"
+    assert "Invalid request: Invalid file format" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -134,8 +134,8 @@ async def test_handle_response_400_missing_error_structure(
     with pytest.raises(RealityDefenderError) as exc_info:
         await http_client._handle_response(mock_response)
 
-    assert exc_info.value.code == "server_error"
-    assert "Bad request: Unknown error" in str(exc_info.value)
+    assert exc_info.value.code == "invalid_request"
+    assert "Invalid request: Unknown error" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -148,8 +148,8 @@ async def test_handle_response_400_empty_error_fields(http_client: HttpClient) -
     with pytest.raises(RealityDefenderError) as exc_info:
         await http_client._handle_response(mock_response)
 
-    assert exc_info.value.code == "server_error"
-    assert "Bad request: Unknown error" in str(exc_info.value)
+    assert exc_info.value.code == "invalid_request"
+    assert "Invalid request: Unknown error" in str(exc_info.value)
 
 
 @pytest.mark.asyncio

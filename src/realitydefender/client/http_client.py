@@ -156,7 +156,7 @@ class HttpClient:
             if code in ["free-tier-not-allowed", "upload-limit-reached"]:
                 raise RealityDefenderError(response, "unauthorized")
             else:
-                raise RealityDefenderError(f"Bad request: {response}", "server_error")
+                raise RealityDefenderError(f"Invalid request: {response}", "invalid_request")
 
         elif client_response.status == 401:
             raise RealityDefenderError(
