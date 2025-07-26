@@ -8,19 +8,6 @@ from typing import Dict, Literal, Protocol, Union, Any
 from realitydefender.errors import RealityDefenderError
 
 
-class BasicResponse(TypedDict):
-    """A basic response from Reality Defender API"""
-
-    code: str
-    """Short code describing the nature of the returned message"""
-
-    response: str
-    """Description of the response"""
-
-    errno: int | None
-    """Error code, if any"""
-
-
 class UploadResult(TypedDict):
     """Result of a successful upload"""
 
