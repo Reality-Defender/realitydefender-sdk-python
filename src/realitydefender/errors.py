@@ -6,7 +6,7 @@ from typing import Literal
 
 # Error codes returned by the SDK
 ErrorCode = Literal[
-    "unauthorized",  # Invalid or missing API key
+    "unauthorized",  # Authorization related error
     "server_error",  # Server-side error occurred
     "timeout",  # Operation timed out
     "invalid_file",  # File not found or invalid format

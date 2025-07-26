@@ -125,13 +125,13 @@ class HttpClient:
             raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")
 
     async def _handle_response(
-        self, response: aiohttp.ClientResponse
+        self, client_response: aiohttp.ClientResponse
     ) -> Dict[str, Any]:
         """
         Handle HTTP response and check for errors
 
         Args:
-            response: HTTP response from aiohttp
+            client_response: HTTP response from aiohttp
 
         Returns:
             Parsed JSON response
@@ -139,41 +139,44 @@ class HttpClient:
         Raises:
             RealityDefenderError: If the response contains an error
         """
+        json_content: Dict[str, Any] | None = None
+        code: str
+        response: str
+        try:
+            json_content = await client_response.json()
+            code = json_content.get("code") or ""
+            response = json_content.get("response") or "Unknown error"
+        except json.JSONDecodeError:
+            text_content: str = await client_response.text()
+            code = ""
+            response = text_content
 
-        # Handle free tier error individually for better visibility.
-        if response.status == 400:
-            error_data = await response.json()
-            code: str = error_data.get("error", {}).get("code", "unknown_error")
-            message = error_data.get("error", {}).get("message", "Unknown error")
-            if "free-tier-not-allowed" in code:
-                raise RealityDefenderError(message, "unauthorized")
+        # Handle error responses.
+        if client_response.status == 400:
+            if code in ["free-tier-not-allowed", "upload-limit-reached"]:
+                raise RealityDefenderError(response, "unauthorized")
             else:
-                raise RealityDefenderError(f"API error: {message}", "server_error")
-        if response.status == 404:
+                raise RealityDefenderError(f"Bad request: {response}", "server_error")
+
+        elif client_response.status == 401:
+            raise RealityDefenderError(
+                "Invalid API key", "unauthorized"
+            )
+
+        elif client_response.status == 404:
             raise RealityDefenderError("Resource not found", "not_found")
 
-        if response.status == 401:
+        elif client_response.status > 400:
+            # Anything else is a generic API error, originated from the server.
+            raise RealityDefenderError(f"API error: {response}", "server_error")
+
+        elif json_content is None:
             raise RealityDefenderError(
-                "Unauthorized - check your API key", "unauthorized"
+                f"Invalid JSON response: {response}", "server_error"
             )
 
-        if response.status > 400:
-            try:
-                error_data = await response.json()
-                message = error_data.get("error", {}).get("message", "Unknown error")
-                raise RealityDefenderError(f"API error: {message}", "server_error")
-            except json.JSONDecodeError:
-                error_text = await response.text()
-                raise RealityDefenderError(f"API error: {error_text}", "server_error")
-
-        try:
-            result: Dict[str, Any] = await response.json()
-            return result
-        except json.JSONDecodeError:
-            content = await response.text()
-            raise RealityDefenderError(
-                f"Invalid JSON response: {content}", "server_error"
-            )
+        # Return response unchanged.
+        return json_content
 
     async def close(self) -> None:
         """Close the HTTP session if it exists"""
