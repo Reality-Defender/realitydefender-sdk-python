@@ -6,7 +6,7 @@ Client library for deepfake detection using the Reality Defender API
 from .detection.results import get_detection_result
 from .detection.upload import upload_file
 from .errors import ErrorCode, RealityDefenderError
-from .types import (
+from realitydefender.model import (
     DetectionResult,
     UploadResult,
 )

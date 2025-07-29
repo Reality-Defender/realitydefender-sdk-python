@@ -8,7 +8,7 @@ from typing import Any, Dict
 from realitydefender.client.http_client import HttpClient
 from realitydefender.core.constants import API_PATHS
 from realitydefender.errors import RealityDefenderError
-from realitydefender.types import UploadResult
+from realitydefender.model import UploadResult
 from realitydefender.utils.file_utils import get_file_info
 
 

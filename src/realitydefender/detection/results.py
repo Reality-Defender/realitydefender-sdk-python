@@ -11,7 +11,7 @@ from realitydefender.core.constants import (
     DEFAULT_POLLING_INTERVAL,
 )
 from realitydefender.errors import RealityDefenderError
-from realitydefender.types import DetectionResult, ModelResult, DetectionResultList
+from realitydefender.model import DetectionResult, ModelResult, DetectionResultList
 from realitydefender.utils.async_utils import sleep
 
 # Generic type for the HTTP client
