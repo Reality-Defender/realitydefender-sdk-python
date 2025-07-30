@@ -1,6 +1,7 @@
 """
 Tests for the main SDK functionality
 """
+
 from datetime import date
 from unittest.mock import AsyncMock, patch
 
@@ -13,7 +14,11 @@ from realitydefender import (
     get_detection_result,
     upload_file,
 )
-from realitydefender.detection.results import get_detection_results, format_result_list, get_media_results
+from realitydefender.detection.results import (
+    get_detection_results,
+    format_result_list,
+    get_media_results,
+)
 
 
 @pytest.fixture
@@ -29,7 +34,7 @@ def mock_client() -> AsyncMock:
 async def sdk_instance(mock_client: AsyncMock) -> RealityDefender:
     """Create a patched SDK instance with a mock client"""
     with patch(
-            "realitydefender.reality_defender.create_http_client", return_value=mock_client
+        "realitydefender.reality_defender.create_http_client", return_value=mock_client
     ):
         sdk = RealityDefender(api_key="test-api-key")
         sdk.client = mock_client
@@ -40,12 +45,10 @@ async def sdk_instance(mock_client: AsyncMock) -> RealityDefender:
 async def test_sdk_initialization() -> None:
     """Test SDK initialization"""
     # Test with valid API key
-    with patch(
-            "realitydefender.reality_defender.create_http_client"
-    ) as mock_create_client:
-        sdk = RealityDefender(api_key="test-api-key")
-        mock_create_client.assert_called_once()
-        assert sdk.api_key == "test-api-key"
+    sdk = RealityDefender(api_key="test-api-key")
+    assert sdk.api_key == "test-api-key"
+    assert sdk.client.base_url == "https://api.prd.realitydefender.xyz"
+    assert sdk.client.api_key == "test-api-key"
 
     # Test with missing API key
     with pytest.raises(RealityDefenderError) as exc_info:
@@ -86,7 +89,7 @@ async def test_upload(sdk_instance: RealityDefender, mock_client: AsyncMock) -> 
 
 @pytest.mark.asyncio
 async def test_get_result(
-        sdk_instance: RealityDefender, mock_client: AsyncMock
+    sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test getting detection results"""
     # Setup mock response
@@ -138,7 +141,7 @@ async def test_get_result(
 
 @pytest.mark.asyncio
 async def test_poll_for_results(
-        sdk_instance: RealityDefender, mock_client: AsyncMock
+    sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test polling for results"""
     # Setup mock to return 'ANALYZING' first, then 'MANIPULATED'
@@ -190,7 +193,7 @@ async def test_poll_for_results(
 
 @pytest.mark.asyncio
 async def test_poll_for_results_error(
-        sdk_instance: RealityDefender, mock_client: AsyncMock
+    sdk_instance: RealityDefender, mock_client: AsyncMock
 ) -> None:
     """Test polling with errors"""
     # Set up error to be emitted
@@ -289,8 +292,7 @@ async def test_get_media_results_success(mock_client: AsyncMock) -> None:
     result = await get_media_results(mock_client, page_number=1, size=5)
 
     mock_client.get.assert_called_once_with(
-        path="/api/v2/media/users/pages/1",
-        params={"size": "5"}
+        path="/api/v2/media/users/pages/1", params={"size": "5"}
     )
     assert result == mock_response
 
@@ -303,7 +305,9 @@ async def test_get_media_results_with_filters(mock_client: AsyncMock) -> None:
     start_date = date(2023, 1, 1)
     end_date = date(2023, 12, 31)
 
-    await get_media_results(mock_client, name="test", start_date=start_date, end_date=end_date)
+    await get_media_results(
+        mock_client, name="test", start_date=start_date, end_date=end_date
+    )
 
     mock_client.get.assert_called_once_with(
         path="/api/v2/media/users/pages/0",
@@ -311,8 +315,8 @@ async def test_get_media_results_with_filters(mock_client: AsyncMock) -> None:
             "size": "10",
             "name": "test",
             "startDate": "2023-01-01",
-            "endDate": "2023-12-31"
-        }
+            "endDate": "2023-12-31",
+        },
     )
 
 
@@ -337,9 +341,9 @@ def test_format_result_list_success() -> None:
         "mediaList": [
             {
                 "resultsSummary": {"status": "REAL", "metadata": {"finalScore": 10}},
-                "models": [{"name": "face", "status": "REAL", "predictionNumber": 0.1}]
+                "models": [{"name": "face", "status": "REAL", "predictionNumber": 0.1}],
             }
-        ]
+        ],
     }
 
     result = format_result_list(response)
@@ -359,10 +363,15 @@ async def test_get_detection_results_success(mock_client: AsyncMock) -> None:
         "currentPageItemsCount": 1,
         "mediaList": [
             {
-                "resultsSummary": {"status": "AUTHENTIC", "metadata": {"finalScore": 10}},
-                "models": [{"name": "face", "status": "AUTHENTIC", "predictionNumber": 0.1}]
+                "resultsSummary": {
+                    "status": "AUTHENTIC",
+                    "metadata": {"finalScore": 10},
+                },
+                "models": [
+                    {"name": "face", "status": "AUTHENTIC", "predictionNumber": 0.1}
+                ],
             }
-        ]
+        ],
     }
     mock_client.get.return_value = mock_response
 
@@ -384,11 +393,13 @@ async def test_get_detection_results_retry_logic(mock_client: AsyncMock) -> None
             "totalPages": 1,
             "currentPage": 0,
             "currentPageItemsCount": 1,
-            "mediaList": []
-        }
+            "mediaList": [],
+        },
     ]
 
-    result = await get_detection_results(mock_client, max_attempts=2, polling_interval=1)
+    result = await get_detection_results(
+        mock_client, max_attempts=2, polling_interval=1
+    )
 
     assert mock_client.get.call_count == 2
     assert result["total_items"] == 1

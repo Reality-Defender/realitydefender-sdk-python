@@ -1,6 +1,7 @@
 """
 Detection results retrieval and processing
 """
+
 from datetime import date
 from typing import Any, Dict, TypeVar, Optional
 
@@ -41,12 +42,14 @@ async def get_media_result(client: ClientType, request_id: str) -> Dict[str, Any
         raise RealityDefenderError(f"Failed to get result: {str(e)}", "unknown_error")
 
 
-async def get_media_results(client: ClientType,
-                            page_number: int = 0,
-                            size: int = 10,
-                            name: Optional[str] = None,
-                            start_date: Optional[date] = None,
-                            end_date: Optional[date] = None) -> Dict[str, Any]:
+async def get_media_results(
+    client: ClientType,
+    page_number: int = 0,
+    size: int = 10,
+    name: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+) -> Dict[str, Any]:
     """
     Fetches media results from the specified client with optional filters such as page number, size, name,
     start date, and end date. This is an asynchronous function and communicates with an external API
@@ -81,9 +84,9 @@ async def get_media_results(client: ClientType,
         if name:
             params["name"] = str(name)
         if start_date:
-            params["startDate"] = start_date.strftime('%Y-%m-%d')
+            params["startDate"] = start_date.strftime("%Y-%m-%d")
         if end_date:
-            params["endDate"] = end_date.strftime('%Y-%m-%d')
+            params["endDate"] = end_date.strftime("%Y-%m-%d")
 
         return await client.get(path=path, params=params)
     except RealityDefenderError:
@@ -150,7 +153,12 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
                 }
             )
 
-        return {"request_id": request_id, "status": status, "score": score, "models": models}
+        return {
+            "request_id": request_id,
+            "status": status,
+            "score": score,
+            "models": models,
+        }
 
     # Return a default empty result if we couldn't parse the response
     return {"request_id": request_id, "status": "UNKNOWN", "score": None, "models": []}
@@ -170,15 +178,27 @@ def format_result_list(response: Dict[str, Any]) -> DetectionResultList:
         Reraises any exceptions encountered during formatting.
     """
     # Handle regular API responses
-    if response is None or any([response.get(x) is None for x in
-                                ["totalItems", "totalPages", "currentPage", "currentPageItemsCount", "mediaList"]]):
+    if response is None or any(
+        [
+            response.get(x) is None
+            for x in [
+                "totalItems",
+                "totalPages",
+                "currentPage",
+                "currentPageItemsCount",
+                "mediaList",
+            ]
+        ]
+    ):
         raise RealityDefenderError("Invalid response from server", "server_error")
 
-    result = DetectionResultList(total_items=response.get("totalItems", 0),
-                                 total_pages=response.get("totalPages", 0),
-                                 current_page=response.get("currentPage", 0),
-                                 current_page_items_count=response.get("currentPageItemsCount", 0),
-                                 items=[])
+    result = DetectionResultList(
+        total_items=response.get("totalItems", 0),
+        total_pages=response.get("totalPages", 0),
+        current_page=response.get("currentPage", 0),
+        current_page_items_count=response.get("currentPageItemsCount", 0),
+        items=[],
+    )
 
     for item in response.get("mediaList", []):
         result.setdefault("items", []).append(format_result(item))
@@ -187,10 +207,10 @@ def format_result_list(response: Dict[str, Any]) -> DetectionResultList:
 
 
 async def get_detection_result(
-        client: ClientType,
-        request_id: str,
-        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-        polling_interval: int = DEFAULT_POLLING_INTERVAL,
+    client: ClientType,
+    request_id: str,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    polling_interval: int = DEFAULT_POLLING_INTERVAL,
 ) -> DetectionResult:
     """
     Get the detection result for a specific request
@@ -252,15 +272,16 @@ async def get_detection_result(
     return format_result(media_result)
 
 
-async def get_detection_results(client: ClientType,
-                                page_number: int = 0,
-                                size: int = 10,
-                                name: Optional[str] = None,
-                                start_date: Optional[date] = None,
-                                end_date: Optional[date] = None,
-                                max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-                                polling_interval: int = DEFAULT_POLLING_INTERVAL,
-                                ) -> DetectionResultList:
+async def get_detection_results(
+    client: ClientType,
+    page_number: int = 0,
+    size: int = 10,
+    name: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    polling_interval: int = DEFAULT_POLLING_INTERVAL,
+) -> DetectionResultList:
     """
     Retrieves detection results asynchronously based on specified criteria. This function
     communicates with the client to fetch paginated detection results. Optionally, filters
@@ -301,7 +322,9 @@ async def get_detection_results(client: ClientType,
     while attempts < max_attempts:
         try:
             # Get the current media result
-            media_results = await get_media_results(client, page_number, size, name, start_date, end_date)
+            media_results = await get_media_results(
+                client, page_number, size, name, start_date, end_date
+            )
 
             # Format and return the result
             return format_result_list(media_results)

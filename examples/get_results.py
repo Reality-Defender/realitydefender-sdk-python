@@ -28,16 +28,18 @@ def print_results(results: DetectionResultList) -> None:
     print(f"Current Page: {results['current_page'] + 1} of {results['total_pages']}")
     print(f"Results on this page: {results['current_page_items_count']}")
 
-    if results['items']:
+    if results["items"]:
         print("\nDetection Results:")
-        for i, result in enumerate(results['items'], 1):
+        for i, result in enumerate(results["items"], 1):
             print(f"\n{i}. Status: {result['status']}")
             print(f"   Score: {format_score(result['score'])}")
 
-            if result['models']:
+            if result["models"]:
                 print("   Models:")
-                for model in result['models']:
-                    print(f"     - {model['name']}: {model['status']} (Score: {format_score(model['score'])})")
+                for model in result["models"]:
+                    print(
+                        f"     - {model['name']}: {model['status']} (Score: {format_score(model['score'])})"
+                    )
     else:
         print("\nNo results found.")
 
@@ -69,10 +71,7 @@ def sync_example() -> None:
 
         print(f"\n\nFetching results from {start_date} to {end_date}...")
         filtered_results = client.get_results_sync(
-            page_number=0,
-            size=10,
-            start_date=start_date,
-            end_date=end_date
+            page_number=0, size=10, start_date=start_date, end_date=end_date
         )
         print_results(filtered_results)
 
@@ -109,14 +108,12 @@ async def async_example() -> None:
         # Example with name filter
         print("\n\nFetching results filtered by name containing 'test'...")
         name_filtered_results = await client.get_results(
-            page_number=0,
-            size=10,
-            name="test"
+            page_number=0, size=10, name="test"
         )
         print_results(name_filtered_results)
 
         # Example showing pagination
-        if results['total_pages'] > 1:
+        if results["total_pages"] > 1:
             print("\n\nFetching page 2 of results...")
             page2_results = await client.get_results(page_number=1, size=5)
             print_results(page2_results)
