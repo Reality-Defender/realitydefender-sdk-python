@@ -32,12 +32,22 @@ def get_file_info(file_path: str) -> Tuple[str, bytes, str]:
         file_size = os.path.getsize(file_path)
         file_extension: str = os.path.splitext(filename)[1].lower()
         file_extension_size_limit: int = next(
-            (x.get("size_limit", 0) for x in SUPPORTED_FILE_TYPES if file_extension in x.get("extensions", [])), 0)
+            (
+                x.get("size_limit", 0)
+                for x in SUPPORTED_FILE_TYPES
+                if file_extension in x.get("extensions", [])
+            ),
+            0,
+        )
 
         if file_extension_size_limit == 0:
-            raise RealityDefenderError(f"Unsupported file type: {file_extension}", "invalid_file")
+            raise RealityDefenderError(
+                f"Unsupported file type: {file_extension}", "invalid_file"
+            )
         if file_size > file_extension_size_limit:
-            raise RealityDefenderError(f"File too large to upload: {file_path}", "file_too_large")
+            raise RealityDefenderError(
+                f"File too large to upload: {file_path}", "file_too_large"
+            )
 
         # Determine content type
         content_type, _ = mimetypes.guess_type(file_path)

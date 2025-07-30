@@ -33,7 +33,7 @@ class HttpClient:
             config: Configuration including API key and base URL
         """
         self.api_key = config["api_key"]
-        self.base_url = config.get("base_url", DEFAULT_API_ENDPOINT)
+        self.base_url = config.get("base_url") or DEFAULT_API_ENDPOINT
         self.session: Optional[aiohttp.ClientSession] = None
 
     async def ensure_session(self) -> aiohttp.ClientSession:
@@ -156,12 +156,12 @@ class HttpClient:
             if code in ["free-tier-not-allowed", "upload-limit-reached"]:
                 raise RealityDefenderError(response, "unauthorized")
             else:
-                raise RealityDefenderError(f"Invalid request: {response}", "invalid_request")
+                raise RealityDefenderError(
+                    f"Invalid request: {response}", "invalid_request"
+                )
 
         elif client_response.status == 401:
-            raise RealityDefenderError(
-                "Invalid API key", "unauthorized"
-            )
+            raise RealityDefenderError("Invalid API key", "unauthorized")
 
         elif client_response.status == 404:
             raise RealityDefenderError("Resource not found", "not_found")
