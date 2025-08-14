@@ -51,7 +51,8 @@ def test_get_file_info_unknown_mime_type() -> None:
             _, _, mime_type = get_file_info(temp_path)
         finally:
             os.unlink(temp_path)
-        assert exc_info.value.code == "invalid_file"
+
+    assert exc_info.value.code == "invalid_file"
 
 
 def test_get_file_info_file_not_found() -> None:

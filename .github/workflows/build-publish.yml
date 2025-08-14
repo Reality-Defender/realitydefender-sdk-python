@@ -6,10 +6,6 @@ on:
         default: false
         type: boolean
         description: Whether this is a release package ready to be published or not.
-    secrets:
-      pypi-api-token:
-        required: false
-        description: A token required by the registry to publish packages.
 
   workflow_dispatch:
     inputs:
@@ -61,4 +57,4 @@ jobs:
       - name: Publish
         if: ${{ inputs.is-release == true }}
         run: |
-          uv publish --token ${{ secrets.pypi-api-token }}
+          uv publish --token ${{ secrets.PYPI_API_TOKEN }}
