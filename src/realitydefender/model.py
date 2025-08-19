@@ -14,8 +14,8 @@ class UploadResult(TypedDict):
     request_id: str
     """Request ID used to retrieve results"""
 
-    media_id: str
-    """Media ID assigned by the system"""
+    media_id: str | None
+    """Media ID assigned by the system, may be None if not available, e.g. social media links"""
 
 
 class ModelResult(TypedDict):

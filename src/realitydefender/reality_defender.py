@@ -22,6 +22,7 @@ from realitydefender.detection.results import (
     get_detection_results,
 )
 from realitydefender.detection.upload import upload_file
+from realitydefender.detection.social import upload_social_media_link
 from realitydefender.errors import RealityDefenderError
 from realitydefender.model import (
     DetectionResult,
@@ -48,7 +49,7 @@ class RealityDefender(EventEmitter):
             base_url: Base URL to connect to Reality Defender API
 
         Raises:
-            RealityDefenderError: If API key is missing
+            RealityDefenderError: If the API key is missing
         """
         super().__init__()
 
@@ -106,6 +107,54 @@ class RealityDefender(EventEmitter):
             RealityDefenderError: If upload fails
         """
         return self._run_async(self.upload(file_path))
+
+    async def upload_social_media(self, social_media_link: str) -> UploadResult:
+        """
+        Uploads a social media link for processing asynchronously.
+
+        This method receives a social media link and uploads it using the specified
+        client. If the upload fails due to an error, it raises an appropriate
+        exception indicating the failure.
+
+        Parameters:
+            social_media_link: str
+                The URL of the social media link to be uploaded.
+
+        Returns:
+            UploadResult
+                The result of the upload operation.
+
+        Raises:
+            RealityDefenderError
+                If the upload process fails, either due to a general exception or a
+                specific error within the Reality Defender system.
+        """
+        try:
+            result = await upload_social_media_link(self.client, social_media_link)
+            return result
+        except RealityDefenderError:
+            raise
+        except Exception as error:
+            raise RealityDefenderError(f"Upload failed: {str(error)}", "upload_failed")
+
+    def upload_social_media_sync(self, social_media_link: str) -> UploadResult:
+        """
+        Uploads the provided social media link in a synchronous manner and returns the
+        result of the upload operation.
+
+        This method executes the asynchronous upload operation for a given social
+        media link and ensures its execution in a synchronous workflow. The result
+        of the upload is encapsulated in an UploadResult object.
+
+        Parameters:
+        social_media_link: str
+            The URL or identifier of the social media link to upload.
+
+        Returns:
+        UploadResult
+            The result of the social media upload operation.
+        """
+        return self._run_async(self.upload_social_media(social_media_link))
 
     async def get_result(
         self,
