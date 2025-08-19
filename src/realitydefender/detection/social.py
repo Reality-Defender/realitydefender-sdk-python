@@ -9,6 +9,11 @@ from realitydefender.core.constants import API_PATHS
 async def upload_social_media_link(
     client: HttpClient, social_media_link: str
 ) -> UploadResult:
+    if not social_media_link or social_media_link.strip() == "":
+        raise RealityDefenderError(
+            "Social media link is required", "invalid_request"
+        )
+
     try:
         # Check if this is an actual URL.
         parse_result = urlparse(social_media_link)

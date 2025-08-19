@@ -366,8 +366,6 @@ async def test_upload_social_media_link_malformed_urls(
 ) -> None:
     """Test that malformed URLs are rejected"""
     invalid_urls = [
-        "",  # Empty string
-        "   ",  # Only whitespace
         "not a url at all",
         "https://",
         "http://.com",
@@ -383,3 +381,23 @@ async def test_upload_social_media_link_malformed_urls(
         assert isinstance(raised_error, RealityDefenderError)
         assert raised_error.code == "invalid_request"
         assert f"Invalid social media link: {invalid_url}" in str(raised_error)
+
+
+@pytest.mark.asyncio
+async def test_upload_social_media_link_empty_urls(
+        http_client: HttpClient,
+) -> None:
+    """Test that malformed URLs are rejected"""
+    invalid_urls = [
+        "",  # Empty string
+        "   ",  # Only whitespace
+    ]
+
+    for invalid_url in invalid_urls:
+        with pytest.raises(RealityDefenderError) as exc_info:
+            await upload_social_media_link(http_client, invalid_url)
+
+        raised_error: RealityDefenderError = exc_info.value
+        assert isinstance(raised_error, RealityDefenderError)
+        assert raised_error.code == "invalid_request"
+        assert "Social media link is required" in str(raised_error)
