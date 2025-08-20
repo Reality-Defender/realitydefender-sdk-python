@@ -46,10 +46,6 @@ async def test_upload_social_media_link_success_return_type(
 
     # Verify return type matches UploadResult
     assert isinstance(result, dict)
-    assert "request_id" in result
-    assert "media_id" in result
-    assert isinstance(result["request_id"], str)
-    assert result["media_id"] is None
     assert result == {"request_id": "test-request-id", "media_id": None}
 
 

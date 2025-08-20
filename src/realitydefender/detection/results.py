@@ -109,7 +109,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     # Handle regular API responses
     request_id: str = response.get("requestId", "UNKNOWN")
 
-    if "resultsSummary" in response and response.get("resultsSummary") is not None:
+    if response.get("resultsSummary") is not None:
         results_summary = response.get("resultsSummary", {})
         status = results_summary.get("status", "UNKNOWN")
 
