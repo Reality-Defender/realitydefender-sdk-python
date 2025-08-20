@@ -109,7 +109,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
     # Handle regular API responses
     request_id: str = response.get("requestId", "UNKNOWN")
 
-    if "resultsSummary" in response:
+    if response.get("resultsSummary") is not None:
         results_summary = response.get("resultsSummary", {})
         status = results_summary.get("status", "UNKNOWN")
 
@@ -241,7 +241,7 @@ async def get_detection_result(
             result = format_result(media_result)
 
             # If the status is not ANALYZING, return the results immediately
-            if result["status"] != "ANALYZING":
+            if result["status"] not in ["ANALYZING", "UNKNOWN"]:
                 return result
 
             # If we've reached the maximum attempts, return the current result even if still analyzing
