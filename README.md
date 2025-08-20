@@ -186,6 +186,15 @@ There is a size limit for each of the supported file types.
 | Audio     | .flac, .wav, .mp3, .m4a, .aac, .alac, .ogg | 20,971,520         | 20 MB           |
 | Text      | .txt                                       | 5,242,880          | 5 MB            |
 
+## Supported social media platforms
+
+The Reality Defender API supports analysis of media from the following social media platforms:
+* Facebook
+* Instagram
+* Twitter
+* YouTube
+* TikTok
+
 ## Examples
 
 See the `examples` directory for more detailed usage examples.
