@@ -11,7 +11,7 @@ from realitydefender.model import (
     FeedbackLabel,
     UploadResult,
     UserFeedbackCategory,
-    UserFeedbackV2,
+    UserFeedback,
 )
 from .reality_defender import RealityDefender
 
@@ -23,7 +23,7 @@ __all__ = [
     "ErrorCode",
     "UploadResult",
     "DetectionResult",
-    "UserFeedbackV2",
+    "UserFeedback",
     "FeedbackLabel",
     "UserFeedbackCategory",
 ]

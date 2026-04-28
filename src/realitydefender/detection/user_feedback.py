@@ -1,5 +1,5 @@
 """
-User feedback (V2) API helpers — mirrors detection/social.py (validate, then POST).
+User feedback API helpers — mirrors detection/social.py (validate, then POST).
 """
 
 from typing import Any, Dict, Optional
@@ -7,19 +7,19 @@ from typing import Any, Dict, Optional
 from realitydefender.client.http_client import HttpClient
 from realitydefender.core.constants import API_PATHS
 from realitydefender.errors import RealityDefenderError
-from realitydefender.model import FeedbackLabel, UserFeedbackCategory, UserFeedbackV2
+from realitydefender.model import FeedbackLabel, UserFeedback, UserFeedbackCategory
 
 
-async def create_user_feedback_v2(
+async def create_user_feedback(
     client: HttpClient,
     *,
     request_id: str,
     label: FeedbackLabel,
     feedback_category: UserFeedbackCategory,
     comment: Optional[str] = None,
-) -> UserFeedbackV2:
+) -> UserFeedback:
     """
-    Submit user feedback V2 for a completed scan result (POST ``/api/v2/user-feedback``).
+    Submit user feedback for a completed scan result (POST ``/api/v2/user-feedback``).
 
     Args:
         client: SDK HTTP client
@@ -49,9 +49,7 @@ async def create_user_feedback_v2(
     try:
         await client.ensure_session()
 
-        result = await client.post(
-            API_PATHS["USER_FEEDBACK_V2"], json=payload
-        )
+        result = await client.post(API_PATHS["USER_FEEDBACK"], json=payload)
         return result  # type: ignore[return-value]
     except RealityDefenderError:
         raise

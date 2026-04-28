@@ -92,7 +92,7 @@ class HttpClient:
         Make a POST request to the API.
 
         Use ``data``/``files`` for form uploads (e.g. presigned URL, social link).
-        Pass ``json`` for JSON bodies (e.g. user feedback V2); do not combine with
+        Pass ``json`` for JSON bodies (e.g. user feedback); do not combine with
         ``data``/``files`` in the same call.
 
         Args:

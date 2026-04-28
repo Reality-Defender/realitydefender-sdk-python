@@ -148,11 +148,11 @@ Returns a dictionary with detection results:
 }
 ```
 
-### User feedback (V2)
+### User feedback
 
 ```python
 # Must be called from within an async function
-feedback = await rd.create_user_feedback_v2(
+feedback = await rd.create_user_feedback(
     "your-request-id",
     "REAL",
     "CONFIRMATION",
@@ -160,7 +160,7 @@ feedback = await rd.create_user_feedback_v2(
 )
 ```
 
-Returns a `UserFeedbackV2` dictionary (`TypedDict`, `total=False`; keys may be omitted when absent):
+Returns a `UserFeedback` dictionary (`TypedDict`, `total=False`; keys may be omitted when absent):
 
 ```python
 {

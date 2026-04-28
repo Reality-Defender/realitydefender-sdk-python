@@ -11,7 +11,7 @@ API_PATHS = {
     "MEDIA_RESULT": "/api/media/users",
     "ALL_MEDIA_RESULTS": "/api/v2/media/users/pages",
     "SOCIAL_MEDIA": "/api/files/social",
-    "USER_FEEDBACK_V2": "/api/v2/user-feedback",
+    "USER_FEEDBACK": "/api/v2/user-feedback",
 }
 
 # Default polling interval in milliseconds

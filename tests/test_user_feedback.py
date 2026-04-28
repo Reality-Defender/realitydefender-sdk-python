@@ -1,4 +1,4 @@
-"""Tests for user feedback V2 API helpers."""
+"""Tests for user feedback API helpers."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -8,7 +8,7 @@ from realitydefender import RealityDefender
 
 
 @pytest.mark.asyncio
-async def test_create_user_feedback_v2_posts_json() -> None:
+async def test_create_user_feedback_posts_json() -> None:
     client = AsyncMock()
     client.post = AsyncMock(
         return_value={"id": "fb-1", "requestId": "req-a", "category": "CONFIRMATION"}
@@ -20,7 +20,7 @@ async def test_create_user_feedback_v2_posts_json() -> None:
         sdk = RealityDefender(api_key="test-key")
         sdk.client = client
 
-    out = await sdk.create_user_feedback_v2(
+    out = await sdk.create_user_feedback(
         "req-a",
         "REAL",
         "CONFIRMATION",
@@ -40,7 +40,7 @@ async def test_create_user_feedback_v2_posts_json() -> None:
 
 
 @pytest.mark.asyncio
-async def test_create_user_feedback_v2_omits_comment_when_none() -> None:
+async def test_create_user_feedback_omits_comment_when_none() -> None:
     client = AsyncMock()
     client.post = AsyncMock(return_value={"id": "fb-2"})
 
@@ -50,7 +50,7 @@ async def test_create_user_feedback_v2_omits_comment_when_none() -> None:
         sdk = RealityDefender(api_key="test-key")
         sdk.client = client
 
-    await sdk.create_user_feedback_v2(
+    await sdk.create_user_feedback(
         "req-b",
         "SYNTHETIC",
         "FALSE_NEGATIVE",
@@ -66,7 +66,7 @@ async def test_create_user_feedback_v2_omits_comment_when_none() -> None:
     )
 
 
-def test_create_user_feedback_v2_sync() -> None:
+def test_create_user_feedback_sync() -> None:
     client = AsyncMock()
     client.post = AsyncMock(return_value={"id": "sync", "requestId": "r1"})
 
@@ -75,7 +75,7 @@ def test_create_user_feedback_v2_sync() -> None:
     ):
         sdk = RealityDefender(api_key="k")
         sdk.client = client
-        result = sdk.create_user_feedback_v2_sync("r1", "UNKNOWN", "OTHER")
+        result = sdk.create_user_feedback_sync("r1", "UNKNOWN", "OTHER")
 
     assert result["requestId"] == "r1"
     client.post.assert_called_once()

@@ -180,7 +180,7 @@ async def test_post_error(http_client: HttpClient, mock_response: AsyncMock) -> 
 
 @pytest.mark.asyncio
 async def test_post_with_json_body(http_client: HttpClient, mock_response: AsyncMock) -> None:
-    """JSON POST uses session.post(url, json=...) (user feedback V2, etc.)"""
+    """JSON POST uses session.post(url, json=...) (user feedback, etc.)"""
     mock_response.status = 201
     mock_response.json = AsyncMock(return_value={"id": "x", "requestId": "r1"})
 

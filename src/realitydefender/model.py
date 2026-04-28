@@ -87,15 +87,15 @@ EventName = Literal["result", "error"]
 # Map of event names to handler types
 EventHandlers = Dict[EventName, Union[ResultHandler, ErrorHandler]]
 
-# User feedback V2 API value sets (CreateUserFeedbackV2ReqDto)
+# User feedback API value sets (CreateUserFeedbackReqDto)
 FeedbackLabel = Literal["REAL", "SYNTHETIC", "MANIPULATED", "UNKNOWN"]
 UserFeedbackCategory = Literal[
     "FALSE_POSITIVE", "FALSE_NEGATIVE", "CONFIRMATION", "OTHER"
 ]
 
 
-class UserFeedbackV2(TypedDict, total=False):
-    """Response body when user feedback V2 is created (201). Field presence may vary."""
+class UserFeedback(TypedDict, total=False):
+    """Response body when user feedback is created (201). Field presence may vary."""
 
     id: str
     userId: str
