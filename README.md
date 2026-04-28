@@ -148,6 +148,22 @@ Returns a dictionary with detection results:
 }
 ```
 
+### User feedback (V2)
+
+```python
+# Must be called from within an async function
+feedback = await rd.create_user_feedback_v2(
+    "your-request-id",
+    "REAL",
+    "CONFIRMATION",
+    comment="Optional note",
+)
+```
+
+Returns: `UserFeedbackV2` (typed mapping aligned with the API). For synchronous code, use **`create_user_feedback_v2_sync(...)`** with the same arguments.
+
+See [Create User Feedback (V2)](https://docs.realitydefender.com/api-reference/endpoint/create_user_feedback_v2).
+
 ### Event-Based Results
 
 ```python
