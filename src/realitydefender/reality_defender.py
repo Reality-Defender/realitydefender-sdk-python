@@ -23,6 +23,7 @@ from realitydefender.detection.results import (
 )
 from realitydefender.detection.upload import upload_file
 from realitydefender.detection.social import upload_social_media_link
+from realitydefender.detection.user_feedback import create_user_feedback_v2
 from realitydefender.errors import RealityDefenderError
 from realitydefender.model import (
     DetectionResult,
@@ -30,6 +31,9 @@ from realitydefender.model import (
     ResultHandler,
     UploadResult,
     DetectionResultList,
+    UserFeedbackV2,
+    FeedbackLabel,
+    UserFeedbackCategory,
 )
 
 T = TypeVar("T")
@@ -136,6 +140,56 @@ class RealityDefender(EventEmitter):
             raise
         except Exception as error:
             raise RealityDefenderError(f"Upload failed: {str(error)}", "upload_failed")
+
+    async def create_user_feedback_v2(
+        self,
+        request_id: str,
+        label: FeedbackLabel,
+        feedback_category: UserFeedbackCategory,
+        *,
+        comment: Optional[str] = None,
+    ) -> UserFeedbackV2:
+        """
+        Submit user feedback (V2) for a completed scan result.
+
+        Args:
+            request_id: Detection / media result ID
+            label: REAL, SYNTHETIC, MANIPULATED, or UNKNOWN
+            feedback_category: FALSE_POSITIVE, FALSE_NEGATIVE, CONFIRMATION, or OTHER
+            comment: Optional note
+        """
+        try:
+            return await create_user_feedback_v2(
+                self.client,
+                request_id=request_id,
+                label=label,
+                feedback_category=feedback_category,
+                comment=comment,
+            )
+        except RealityDefenderError:
+            raise
+        except Exception as error:
+            raise RealityDefenderError(
+                f"User feedback submission failed: {str(error)}", "upload_failed"
+            )
+
+    def create_user_feedback_v2_sync(
+        self,
+        request_id: str,
+        label: FeedbackLabel,
+        feedback_category: UserFeedbackCategory,
+        *,
+        comment: Optional[str] = None,
+    ) -> UserFeedbackV2:
+        """Synchronous wrapper for :meth:`create_user_feedback_v2`."""
+        return self._run_async(
+            self.create_user_feedback_v2(
+                request_id,
+                label,
+                feedback_category,
+                comment=comment,
+            )
+        )
 
     def upload_social_media_sync(self, social_media_link: str) -> UploadResult:
         """

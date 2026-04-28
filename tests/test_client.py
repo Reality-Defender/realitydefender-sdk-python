@@ -179,6 +179,47 @@ async def test_post_error(http_client: HttpClient, mock_response: AsyncMock) -> 
 
 
 @pytest.mark.asyncio
+async def test_post_with_json_body(http_client: HttpClient, mock_response: AsyncMock) -> None:
+    """JSON POST uses session.post(url, json=...) (user feedback V2, etc.)"""
+    mock_response.status = 201
+    mock_response.json = AsyncMock(return_value={"id": "x", "requestId": "r1"})
+
+    with patch("aiohttp.ClientSession.post", return_value=mock_response):
+        result = await http_client.post(
+            "/api/v2/user-feedback",
+            json={"requestId": "r1", "label": "REAL", "feedbackCategory": "OTHER"},
+        )
+
+    assert result["requestId"] == "r1"
+
+
+@pytest.mark.asyncio
+async def test_post_json_mutually_exclusive_with_form_data(
+    http_client: HttpClient,
+) -> None:
+    with pytest.raises(RealityDefenderError) as exc_info:
+        await http_client.post(
+            "/api/v2/user-feedback",
+            data={"a": "b"},
+            json={"requestId": "r"},
+        )
+
+    assert exc_info.value.code == "invalid_request"
+
+
+@pytest.mark.asyncio
+async def test_post_empty_form_no_json(http_client: HttpClient, mock_response: AsyncMock) -> None:
+    """Empty form POST (no data/files) still succeeds when status OK"""
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value={"ok": True})
+
+    with patch("aiohttp.ClientSession.post", return_value=mock_response):
+        result = await http_client.post("/noop")
+
+    assert result["ok"] is True
+
+
+@pytest.mark.asyncio
 async def test_client_network_error(http_client: HttpClient) -> None:
     """Test handling of network errors"""
     with patch(

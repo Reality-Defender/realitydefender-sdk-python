@@ -8,7 +8,10 @@ from .detection.upload import upload_file
 from .errors import ErrorCode, RealityDefenderError
 from realitydefender.model import (
     DetectionResult,
+    FeedbackLabel,
     UploadResult,
+    UserFeedbackCategory,
+    UserFeedbackV2,
 )
 from .reality_defender import RealityDefender
 
@@ -20,4 +23,7 @@ __all__ = [
     "ErrorCode",
     "UploadResult",
     "DetectionResult",
+    "UserFeedbackV2",
+    "FeedbackLabel",
+    "UserFeedbackCategory",
 ]

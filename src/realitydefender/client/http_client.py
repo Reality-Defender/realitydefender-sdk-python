@@ -86,14 +86,20 @@ class HttpClient:
         path: str,
         data: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Tuple[str, bytes, str]]] = None,
+        json: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Make a POST request to the API
+        Make a POST request to the API.
+
+        Use ``data``/``files`` for form uploads (e.g. presigned URL, social link).
+        Pass ``json`` for JSON bodies (e.g. user feedback V2); do not combine with
+        ``data``/``files`` in the same call.
 
         Args:
             path: API endpoint path
-            data: Request body data
+            data: Form fields (multipart/form)
             files: Files to upload
+            json: JSON serializable body (Content-Type: application/json)
 
         Returns:
             Response data as dictionary
@@ -103,6 +109,19 @@ class HttpClient:
         """
         session = await self.ensure_session()
         url = f"{self.base_url}{path}"
+
+        if json is not None:
+            if data is not None or files is not None:
+                raise RealityDefenderError(
+                    "Use either json= or data=/files=, not both", "invalid_request"
+                )
+            try:
+                async with session.post(url, json=json) as response:
+                    return await self._handle_response(response)
+            except aiohttp.ClientError as e:
+                raise RealityDefenderError(
+                    f"HTTP request failed: {str(e)}", "server_error"
+                )
 
         form_data = aiohttp.FormData()
 
