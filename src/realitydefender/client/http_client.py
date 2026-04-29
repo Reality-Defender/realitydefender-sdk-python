@@ -107,38 +107,34 @@ class HttpClient:
         Raises:
             RealityDefenderError: If the request fails
         """
+        if json is not None and (data is not None or files is not None):
+            raise RealityDefenderError(
+                "Use either json= or data=/files=, not both", "invalid_request"
+            )
+
         session = await self.ensure_session()
         url = f"{self.base_url}{path}"
 
+        request_kwargs: Dict[str, Any]
         if json is not None:
-            if data is not None or files is not None:
-                raise RealityDefenderError(
-                    "Use either json= or data=/files=, not both", "invalid_request"
-                )
-            try:
-                async with session.post(url, json=json) as response:
-                    return await self._handle_response(response)
-            except aiohttp.ClientError as e:
-                raise RealityDefenderError(
-                    f"HTTP request failed: {str(e)}", "server_error"
-                )
-
-        form_data = aiohttp.FormData()
-
-        # Add regular data
-        if data:
-            for key, value in data.items():
-                form_data.add_field(key, str(value))
-
-        # Add files
-        if files:
-            for field_name, (filename, content, content_type) in files.items():
-                form_data.add_field(
-                    field_name, content, filename=filename, content_type=content_type
-                )
+            request_kwargs = {"json": json}
+        else:
+            form_data = aiohttp.FormData()
+            if data:
+                for key, value in data.items():
+                    form_data.add_field(key, str(value))
+            if files:
+                for field_name, (filename, content, content_type) in files.items():
+                    form_data.add_field(
+                        field_name,
+                        content,
+                        filename=filename,
+                        content_type=content_type,
+                    )
+            request_kwargs = {"data": form_data}
 
         try:
-            async with session.post(url, data=form_data) as response:
+            async with session.post(url, **request_kwargs) as response:
                 return await self._handle_response(response)
         except aiohttp.ClientError as e:
             raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")

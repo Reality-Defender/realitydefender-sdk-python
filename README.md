@@ -160,24 +160,24 @@ feedback = await rd.create_user_feedback(
 )
 ```
 
-Returns a `UserFeedback` dictionary (`TypedDict`, `total=False`; keys may be omitted when absent):
+Returns a `UserFeedback` dictionary (`TypedDict`). The create response includes the persisted feedback row; nullable enrichment fields may be `None`.
 
 ```python
 {
-    "id": str,  # Created feedback record id
-    "userId": str,  # Authenticated user id
-    "requestId": str,  # Media / detection request id
-    "institutionId": str,  # Organization id
-    "category": str,  # FEEDBACK_CATEGORY value stored for this row
-    "label": str,  # REAL, SYNTHETIC, MANIPULATED, or UNKNOWN
-    "createdAt": str,  # ISO 8601 timestamp
-    "mediaViewUrl": str,  # Link to result in the web app
-    "mediaSource": str,  # e.g. file upload or API source label
-    "text": str,  # Comment text if the request included comment
-    "userName": str,  # Display name if available
-    "userEmail": str,  # Email if available
-    "orgName": str,  # Organization name if available
-    "mediaType": str,  # e.g. VIDEO, IMAGE if available
+    "id": str,
+    "userId": str,
+    "requestId": str,
+    "institutionId": str,
+    "category": str,
+    "label": str,
+    "createdAt": str,
+    "text": str | None,
+    "userName": str | None,
+    "userEmail": str | None,
+    "orgName": str | None,
+    "mediaType": str | None,
+    "mediaViewUrl": str | None,
+    "mediaSource": str | None,
 }
 ```
 

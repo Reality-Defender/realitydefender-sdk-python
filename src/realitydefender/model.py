@@ -94,20 +94,28 @@ UserFeedbackCategory = Literal[
 ]
 
 
-class UserFeedback(TypedDict, total=False):
-    """Response body when user feedback is created (201). Field presence may vary."""
+class _UserFeedbackOptional(TypedDict, total=False):
+    """Nullable or enrichment fields on the create-user-feedback response."""
+
+    text: Optional[str]
+    userName: Optional[str]
+    userEmail: Optional[str]
+    orgName: Optional[str]
+    mediaType: Optional[str]
+    mediaViewUrl: Optional[str]
+    mediaSource: Optional[str]
+
+
+class UserFeedback(_UserFeedbackOptional):
+    """Response body when user feedback is created (201).
+
+    Populated by parsing ``Dict[str, Any]`` from :meth:`~realitydefender.client.http_client.HttpClient.post`.
+    """
 
     id: str
     userId: str
     requestId: str
     institutionId: str
-    text: str
     category: UserFeedbackCategory
-    userName: str
-    userEmail: str
-    orgName: str
-    mediaType: str
-    mediaViewUrl: str
-    mediaSource: str
-    label: str
+    label: FeedbackLabel
     createdAt: str
