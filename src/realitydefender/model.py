@@ -86,3 +86,36 @@ EventName = Literal["result", "error"]
 
 # Map of event names to handler types
 EventHandlers = Dict[EventName, Union[ResultHandler, ErrorHandler]]
+
+# User feedback API value sets (CreateUserFeedbackReqDto)
+FeedbackLabel = Literal["REAL", "SYNTHETIC", "MANIPULATED", "UNKNOWN"]
+UserFeedbackCategory = Literal[
+    "FALSE_POSITIVE", "FALSE_NEGATIVE", "CONFIRMATION", "OTHER"
+]
+
+
+class _UserFeedbackOptional(TypedDict, total=False):
+    """Nullable or enrichment fields on the create-user-feedback response."""
+
+    text: Optional[str]
+    userName: Optional[str]
+    userEmail: Optional[str]
+    orgName: Optional[str]
+    mediaType: Optional[str]
+    mediaViewUrl: Optional[str]
+    mediaSource: Optional[str]
+
+
+class UserFeedback(_UserFeedbackOptional):
+    """Response body when user feedback is created (201).
+
+    Populated by parsing ``Dict[str, Any]`` from :meth:`~realitydefender.client.http_client.HttpClient.post`.
+    """
+
+    id: str
+    userId: str
+    requestId: str
+    institutionId: str
+    category: UserFeedbackCategory
+    label: FeedbackLabel
+    createdAt: str

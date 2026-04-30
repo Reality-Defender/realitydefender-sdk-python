@@ -148,6 +148,39 @@ Returns a dictionary with detection results:
 }
 ```
 
+### User feedback
+
+```python
+# Must be called from within an async function
+feedback = await rd.create_user_feedback(
+    "your-request-id",
+    "REAL",
+    "CONFIRMATION",
+    comment="Optional note",
+)
+```
+
+Returns a `UserFeedback` dictionary (`TypedDict`). The create response includes the persisted feedback row; nullable enrichment fields may be `None`.
+
+```python
+{
+    "id": str,
+    "userId": str,
+    "requestId": str,
+    "institutionId": str,
+    "category": str,
+    "label": str,
+    "createdAt": str,
+    "text": str | None,
+    "userName": str | None,
+    "userEmail": str | None,
+    "orgName": str | None,
+    "mediaType": str | None,
+    "mediaViewUrl": str | None,
+    "mediaSource": str | None,
+}
+```
+
 ### Event-Based Results
 
 ```python

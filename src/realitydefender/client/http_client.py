@@ -86,14 +86,20 @@ class HttpClient:
         path: str,
         data: Optional[Dict[str, Any]] = None,
         files: Optional[Dict[str, Tuple[str, bytes, str]]] = None,
+        json: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Make a POST request to the API
+        Make a POST request to the API.
+
+        Use ``data``/``files`` for form uploads (e.g. presigned URL, social link).
+        Pass ``json`` for JSON bodies (e.g. user feedback); do not combine with
+        ``data``/``files`` in the same call.
 
         Args:
             path: API endpoint path
-            data: Request body data
+            data: Form fields (multipart/form)
             files: Files to upload
+            json: JSON serializable body (Content-Type: application/json)
 
         Returns:
             Response data as dictionary
@@ -101,25 +107,34 @@ class HttpClient:
         Raises:
             RealityDefenderError: If the request fails
         """
+        if json is not None and (data is not None or files is not None):
+            raise RealityDefenderError(
+                "Use either json= or data=/files=, not both", "invalid_request"
+            )
+
         session = await self.ensure_session()
         url = f"{self.base_url}{path}"
 
-        form_data = aiohttp.FormData()
-
-        # Add regular data
-        if data:
-            for key, value in data.items():
-                form_data.add_field(key, str(value))
-
-        # Add files
-        if files:
-            for field_name, (filename, content, content_type) in files.items():
-                form_data.add_field(
-                    field_name, content, filename=filename, content_type=content_type
-                )
+        request_kwargs: Dict[str, Any]
+        if json is not None:
+            request_kwargs = {"json": json}
+        else:
+            form_data = aiohttp.FormData()
+            if data:
+                for key, value in data.items():
+                    form_data.add_field(key, str(value))
+            if files:
+                for field_name, (filename, content, content_type) in files.items():
+                    form_data.add_field(
+                        field_name,
+                        content,
+                        filename=filename,
+                        content_type=content_type,
+                    )
+            request_kwargs = {"data": form_data}
 
         try:
-            async with session.post(url, data=form_data) as response:
+            async with session.post(url, **request_kwargs) as response:
                 return await self._handle_response(response)
         except aiohttp.ClientError as e:
             raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")
