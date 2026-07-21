@@ -95,6 +95,33 @@ async def get_media_results(
         raise RealityDefenderError(f"Failed to get results: {str(e)}", "unknown_error")
 
 
+def _extract_heatmaps(
+    media_type: Optional[str],
+    heatmaps: Optional[Dict[str, str]],
+    models: list[ModelResult],
+) -> Optional[Dict[str, str]]:
+    """
+    IMAGE heatmaps only, for non-ensemble models with status ``MANIPULATED``
+    (API ``FAKE`` after formatting) and a non-empty URL.
+    """
+    if not media_type or media_type.upper() != "IMAGE" or not heatmaps:
+        return None
+
+    artificial_names = {
+        model["name"]
+        for model in models
+        if model["status"] == "MANIPULATED"
+        and "ensemble" not in model["name"].lower()
+    }
+
+    usable = {
+        name: url
+        for name, url in heatmaps.items()
+        if name in artificial_names and isinstance(url, str) and url
+    }
+    return usable or None
+
+
 def format_result(response: Dict[str, Any]) -> DetectionResult:
     """
     Format the raw API response into a user-friendly result
@@ -153,15 +180,27 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
                 }
             )
 
+        heatmaps = response.get("heatmaps")
         return {
             "request_id": request_id,
             "status": status,
             "score": score,
             "models": models,
+            "heatmaps": _extract_heatmaps(
+                response.get("mediaType"),
+                heatmaps if isinstance(heatmaps, dict) else None,
+                models,
+            ),
         }
 
     # Return a default empty result if we couldn't parse the response
-    return {"request_id": request_id, "status": "UNKNOWN", "score": None, "models": []}
+    return {
+        "request_id": request_id,
+        "status": "UNKNOWN",
+        "score": None,
+        "models": [],
+        "heatmaps": None,
+    }
 
 
 def format_result_list(response: Dict[str, Any]) -> DetectionResultList:

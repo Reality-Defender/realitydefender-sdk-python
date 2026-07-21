@@ -298,7 +298,9 @@ class RealityDefender(EventEmitter):
         """
         return self._run_async(
             self.get_result(
-                request_id, max_attempts=max_attempts, polling_interval=polling_interval
+                request_id,
+                max_attempts=max_attempts,
+                polling_interval=polling_interval,
             )
         )
 
