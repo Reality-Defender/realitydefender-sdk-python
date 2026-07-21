@@ -95,39 +95,29 @@ async def get_media_results(
         raise RealityDefenderError(f"Failed to get results: {str(e)}", "unknown_error")
 
 
-def _is_ensemble_model_name(name: Any) -> bool:
-    return isinstance(name, str) and "ensemble" in name.lower()
-
-
-def _is_artificial_model_result(model: Any) -> bool:
-    """Artificial for heatmaps: API model status FAKE (UI ARTIFICIAL)."""
-    return isinstance(model, dict) and model.get("status") == "FAKE"
-
-
 def _extract_heatmaps(
-    media_type: Any, heatmaps: Any, models: Any
+    media_type: Optional[str],
+    heatmaps: Optional[Dict[str, str]],
+    models: list[ModelResult],
 ) -> Optional[Dict[str, str]]:
     """
-    IMAGE heatmaps only, for non-ensemble models with status ``FAKE``
-    and a non-empty URL.
+    IMAGE heatmaps only, for non-ensemble models with status ``MANIPULATED``
+    (API ``FAKE`` after formatting) and a non-empty URL.
     """
-    if not isinstance(media_type, str) or media_type.upper() != "IMAGE":
-        return None
-    if not isinstance(heatmaps, dict) or not heatmaps:
+    if not media_type or media_type.upper() != "IMAGE" or not heatmaps:
         return None
 
-    model_list = models if isinstance(models, list) else []
     artificial_names = {
-        str(model.get("name"))
-        for model in model_list
-        if _is_artificial_model_result(model)
-        and not _is_ensemble_model_name(model.get("name"))
+        model["name"]
+        for model in models
+        if model["status"] == "MANIPULATED"
+        and "ensemble" not in model["name"].lower()
     }
 
     usable = {
-        str(name): url
+        name: url
         for name, url in heatmaps.items()
-        if str(name) in artificial_names and isinstance(url, str) and url
+        if name in artificial_names and isinstance(url, str) and url
     }
     return usable or None
 
@@ -190,6 +180,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
                 }
             )
 
+        heatmaps = response.get("heatmaps")
         return {
             "request_id": request_id,
             "status": status,
@@ -197,8 +188,8 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
             "models": models,
             "heatmaps": _extract_heatmaps(
                 response.get("mediaType"),
-                response.get("heatmaps"),
-                response.get("models"),
+                heatmaps if isinstance(heatmaps, dict) else None,
+                models,
             ),
         }
 
