@@ -46,6 +46,9 @@ class DetectionResult(TypedDict):
     models: List[ModelResult]
     """Results from individual detection models"""
 
+    heatmaps: Optional[Dict[str, str]]
+    """Pre-signed heatmap URLs for IMAGE artificial non-ensemble models; None otherwise"""
+
 
 class DetectionResultList(TypedDict):
     """List of detection results"""

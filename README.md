@@ -148,6 +148,17 @@ Returns a dictionary with detection results:
 }
 ```
 
+`DetectionResult` includes heatmaps for IMAGE media when a non-ensemble model returns an artificial result (API status `FAKE` / UI ARTIFICIAL). Pre-signed URLs expire after 15 minutes; otherwise `None`:
+
+```python
+result = await rd.get_result(request_id)
+
+# IMAGE heatmaps: model slug → pre-signed PNG URL
+print(result["heatmaps"])
+```
+
+For other media-detail fields (aggregation metadata, explainability, thumbnails, etc.), use the Media Detail API directly.
+
 ### User feedback
 
 ```python

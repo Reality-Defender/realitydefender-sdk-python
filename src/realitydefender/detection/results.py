@@ -95,6 +95,52 @@ async def get_media_results(
         raise RealityDefenderError(f"Failed to get results: {str(e)}", "unknown_error")
 
 
+def _is_ensemble_model_name(name: Any) -> bool:
+    return isinstance(name, str) and "ensemble" in name.lower()
+
+
+def _is_artificial_model_result(model: Any) -> bool:
+    """Match UI heatmap availability (ARTIFICIAL / API status FAKE)."""
+    if not isinstance(model, dict):
+        return False
+    if model.get("status") == "FAKE":
+        return True
+    data = model.get("data")
+    if isinstance(data, dict):
+        decision = data.get("decision")
+        if isinstance(decision, str):
+            return decision.upper() in ("ARTIFICIAL", "FAKE")
+    return False
+
+
+def _extract_heatmaps(
+    media_type: Any, heatmaps: Any, models: Any
+) -> Optional[Dict[str, str]]:
+    """
+    IMAGE heatmaps only, for non-ensemble models with an artificial result
+    (API status ``FAKE`` / decision ``ARTIFICIAL``) and a non-empty URL.
+    """
+    if not isinstance(media_type, str) or media_type.upper() != "IMAGE":
+        return None
+    if not isinstance(heatmaps, dict) or not heatmaps:
+        return None
+
+    model_list = models if isinstance(models, list) else []
+    artificial_names = {
+        str(model.get("name"))
+        for model in model_list
+        if _is_artificial_model_result(model)
+        and not _is_ensemble_model_name(model.get("name"))
+    }
+
+    usable = {
+        str(name): url
+        for name, url in heatmaps.items()
+        if str(name) in artificial_names and isinstance(url, str) and url
+    }
+    return usable or None
+
+
 def format_result(response: Dict[str, Any]) -> DetectionResult:
     """
     Format the raw API response into a user-friendly result
@@ -158,10 +204,21 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
             "status": status,
             "score": score,
             "models": models,
+            "heatmaps": _extract_heatmaps(
+                response.get("mediaType"),
+                response.get("heatmaps"),
+                response.get("models"),
+            ),
         }
 
     # Return a default empty result if we couldn't parse the response
-    return {"request_id": request_id, "status": "UNKNOWN", "score": None, "models": []}
+    return {
+        "request_id": request_id,
+        "status": "UNKNOWN",
+        "score": None,
+        "models": [],
+        "heatmaps": None,
+    }
 
 
 def format_result_list(response: Dict[str, Any]) -> DetectionResultList:
