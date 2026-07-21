@@ -100,25 +100,16 @@ def _is_ensemble_model_name(name: Any) -> bool:
 
 
 def _is_artificial_model_result(model: Any) -> bool:
-    """Match UI heatmap availability (ARTIFICIAL / API status FAKE)."""
-    if not isinstance(model, dict):
-        return False
-    if model.get("status") == "FAKE":
-        return True
-    data = model.get("data")
-    if isinstance(data, dict):
-        decision = data.get("decision")
-        if isinstance(decision, str):
-            return decision.upper() in ("ARTIFICIAL", "FAKE")
-    return False
+    """Artificial for heatmaps: API model status FAKE (UI ARTIFICIAL)."""
+    return isinstance(model, dict) and model.get("status") == "FAKE"
 
 
 def _extract_heatmaps(
     media_type: Any, heatmaps: Any, models: Any
 ) -> Optional[Dict[str, str]]:
     """
-    IMAGE heatmaps only, for non-ensemble models with an artificial result
-    (API status ``FAKE`` / decision ``ARTIFICIAL``) and a non-empty URL.
+    IMAGE heatmaps only, for non-ensemble models with status ``FAKE``
+    and a non-empty URL.
     """
     if not isinstance(media_type, str) or media_type.upper() != "IMAGE":
         return None
