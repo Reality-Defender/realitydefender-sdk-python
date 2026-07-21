@@ -157,8 +157,6 @@ result = await rd.get_result(request_id)
 print(result["heatmaps"])
 ```
 
-For other media-detail fields (aggregation metadata, explainability, thumbnails, etc.), use the Media Detail API directly.
-
 ### User feedback
 
 ```python
