@@ -187,6 +187,7 @@ async def test_poll_for_results(
                 "status": "MANIPULATED",
                 "score": 0.955,
                 "models": [{"name": "model1", "status": "MANIPULATED", "score": 0.973}],
+                "heatmaps": None,
             },
         )
 
