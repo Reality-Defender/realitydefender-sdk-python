@@ -18,6 +18,7 @@ from realitydefender.core.constants import (
 )
 from realitydefender.core.events import EventEmitter
 from realitydefender.detection.results import (
+    IN_PROGRESS_STATUSES,
     get_detection_result,
     get_detection_results,
 )
@@ -406,7 +407,7 @@ class RealityDefender(EventEmitter):
         while not is_completed and elapsed < max_wait_time:
             try:
                 result = await self.get_result(request_id)
-                if result["status"] == "ANALYZING":
+                if result["status"] in IN_PROGRESS_STATUSES:
                     elapsed += polling_interval
                     await asyncio.sleep(polling_interval / 1000)  # Convert to seconds
                 else:

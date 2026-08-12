@@ -18,6 +18,8 @@ from realitydefender.utils.async_utils import sleep
 # Generic type for the HTTP client
 ClientType = TypeVar("ClientType", bound=HttpClient)
 
+IN_PROGRESS_STATUSES = frozenset({"ANALYZING", "DOWNLOADING"})
+
 
 async def get_media_result(client: ClientType, request_id: str) -> Dict[str, Any]:
     """
@@ -135,71 +137,67 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
 
     # Handle regular API responses
     request_id: str = response.get("requestId", "UNKNOWN")
+    results_summary = response.get("resultsSummary")
 
-    if response.get("resultsSummary") is not None:
-        results_summary = response.get("resultsSummary", {})
+    if results_summary is not None:
         status = results_summary.get("status", "UNKNOWN")
 
         # Replace FAKE with MANIPULATED
         if status == "FAKE":
             status = "MANIPULATED"
-
+            
         # Get the score and normalize it to a float between 0 and 1
         raw_score = results_summary.get("metadata", {}).get("finalScore")
-        score = None
-        if raw_score is not None:
-            try:
-                score = raw_score / 100.0
-            except (ValueError, TypeError):
-                score = None
+    else:
+        overall_status = response.get("overallStatus")
+        status = overall_status if overall_status else "UNKNOWN"
+        raw_score = None
 
-        # Extract active models (not NOT_APPLICABLE)
-        models_data = [
-            m for m in response.get("models", []) if m.get("status") != "NOT_APPLICABLE"
-        ]
+    score = None
+    if raw_score is not None:
+        try:
+            score = raw_score / 100.0
+        except (ValueError, TypeError):
+            score = None
 
-        # Format models
-        models: list[ModelResult] = []
-        for model in models_data:
-            predicted_number = model.get("predictionNumber")
-            if isinstance(predicted_number, (int, float)):
-                model_score = predicted_number
-            else:
-                model_score = None
+    # Extract active models (not NOT_APPLICABLE)
+    models_data = [
+        m for m in response.get("models", []) if m.get("status") != "NOT_APPLICABLE"
+    ]
+    
+    # Format models
+    models: list[ModelResult] = []
+    for model in models_data:
+        predicted_number = model.get("predictionNumber")
+        if isinstance(predicted_number, (int, float)):
+            model_score = predicted_number
+        else:
+            model_score = None
 
-            # Replace FAKE with MANIPULATED in model status
-            model_status = model.get("status", "UNKNOWN")
-            if model_status == "FAKE":
-                model_status = "MANIPULATED"
+        # Replace FAKE with MANIPULATED in model status
+        model_status = model.get("status", "UNKNOWN")
+        if model_status == "FAKE":
+            model_status = "MANIPULATED"
 
-            models.append(
-                {
-                    "name": model.get("name", "Unknown"),
-                    "status": model_status,
-                    "score": model_score,
-                }
-            )
+        models.append(
+            {
+                "name": model.get("name", "Unknown"),
+                "status": model_status,
+                "score": model_score,
+            }
+        )
 
-        heatmaps = response.get("heatmaps")
-        return {
-            "request_id": request_id,
-            "status": status,
-            "score": score,
-            "models": models,
-            "heatmaps": _extract_heatmaps(
-                response.get("mediaType"),
-                heatmaps if isinstance(heatmaps, dict) else None,
-                models,
-            ),
-        }
-
-    # Return a default empty result if we couldn't parse the response
+    heatmaps = response.get("heatmaps")
     return {
         "request_id": request_id,
-        "status": "UNKNOWN",
-        "score": None,
-        "models": [],
-        "heatmaps": None,
+        "status": status,
+        "score": score,
+        "models": models,
+        "heatmaps": _extract_heatmaps(
+            response.get("mediaType"),
+            heatmaps if isinstance(heatmaps, dict) else None,
+            models,
+        ),
     }
 
 
@@ -279,8 +277,8 @@ async def get_detection_result(
             # Format the result
             result = format_result(media_result)
 
-            # If the status is not ANALYZING, return the results immediately
-            if result["status"] not in ["ANALYZING", "UNKNOWN"]:
+            # Keep polling while the scan is still in progress
+            if result["status"] not in IN_PROGRESS_STATUSES:
                 return result
 
             # If we've reached the maximum attempts, return the current result even if still analyzing
