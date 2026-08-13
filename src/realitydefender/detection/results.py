@@ -149,8 +149,7 @@ def format_result(response: Dict[str, Any]) -> DetectionResult:
         # Get the score and normalize it to a float between 0 and 1
         raw_score = results_summary.get("metadata", {}).get("finalScore")
     else:
-        overall_status = response.get("overallStatus")
-        status = overall_status if overall_status else "UNKNOWN"
+        status = response.get("overallStatus")
         raw_score = None
 
     score = None
