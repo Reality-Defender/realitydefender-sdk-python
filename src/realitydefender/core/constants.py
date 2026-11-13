@@ -9,6 +9,7 @@ DEFAULT_API_ENDPOINT = "https://api.prd.realitydefender.xyz"
 API_PATHS = {
     "SIGNED_URL": "/api/files/aws-presigned",
     "MEDIA_RESULT": "/api/media/users",
+    "DELETE_MEDIA": "/api/media",
     "ALL_MEDIA_RESULTS": "/api/v2/media/users/pages",
     "SOCIAL_MEDIA": "/api/files/social",
     "USER_FEEDBACK": "/api/v2/user-feedback",
