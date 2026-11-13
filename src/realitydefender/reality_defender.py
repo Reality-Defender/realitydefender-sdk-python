@@ -24,7 +24,10 @@ from realitydefender.detection.results import (
 )
 from realitydefender.detection.upload import upload_file
 from realitydefender.detection.social import upload_social_media_link
-from realitydefender.detection.user_feedback import create_user_feedback as submit_user_feedback
+from realitydefender.detection.user_feedback import (
+    create_user_feedback as submit_user_feedback,
+)
+from realitydefender.detection.delete import delete_request as delete_media_request
 from realitydefender.errors import RealityDefenderError
 from realitydefender.model import (
     DetectionResult,
@@ -191,6 +194,31 @@ class RealityDefender(EventEmitter):
                 comment=comment,
             )
         )
+
+    async def delete_request(self, request_id: str) -> None:
+        """
+        Delete a scan request (DELETE ``/api/media/{request_id}``).
+
+        The API responds with 204 No Content.
+
+        Args:
+            request_id: Request ID returned by upload or social media upload
+
+        Raises:
+            RealityDefenderError: If the request id is missing or the API call fails
+        """
+        try:
+            await delete_media_request(self.client, request_id)
+        except RealityDefenderError:
+            raise
+        except Exception as error:
+            raise RealityDefenderError(
+                f"Delete request failed: {str(error)}", "server_error"
+            )
+
+    def delete_request_sync(self, request_id: str) -> None:
+        """Synchronous wrapper for :meth:`delete_request`."""
+        return self._run_async(self.delete_request(request_id))
 
     def upload_social_media_sync(self, social_media_link: str) -> UploadResult:
         """

@@ -157,6 +157,14 @@ result = await rd.get_result(request_id)
 print(result["heatmaps"])
 ```
 
+### Delete a request
+
+Deletes a scan (`DELETE /api/media/{request_id}`). The API responds with 204 No Content.
+
+```python
+await rd.delete_request(request_id)
+```
+
 ### User feedback
 
 ```python

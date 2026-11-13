@@ -139,6 +139,30 @@ class HttpClient:
         except aiohttp.ClientError as e:
             raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")
 
+    async def delete(self, path: str) -> None:
+        """
+        Make a DELETE request to the API.
+
+        Args:
+            path: API endpoint path
+
+        Raises:
+            RealityDefenderError: If the request fails
+        """
+        session = await self.ensure_session()
+        url = f"{self.base_url}{path}"
+
+        try:
+            async with session.delete(url) as response:
+                if response.status in (400, 401, 404) or response.status > 400:
+                    await self._handle_response(response)
+                    return
+                await response.read()
+        except RealityDefenderError:
+            raise
+        except aiohttp.ClientError as e:
+            raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")
+
     async def _handle_response(
         self, client_response: aiohttp.ClientResponse
     ) -> Dict[str, Any]:
