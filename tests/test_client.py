@@ -253,17 +253,17 @@ async def test_delete_no_content(http_client: HttpClient) -> None:
 
 @pytest.mark.asyncio
 async def test_delete_accepts_200(http_client: HttpClient) -> None:
-    """200 is a successful delete, matching the other requests."""
+    """200 is handled by the shared response handler"""
     mock_response = AsyncMock(spec=aiohttp.ClientResponse)
     mock_response.status = 200
-    mock_response.read = AsyncMock(return_value=b'{"ok":true}')
+    mock_response.json = AsyncMock(return_value={"ok": True})
     mock_response.__aenter__ = AsyncMock(return_value=mock_response)
     mock_response.__aexit__ = AsyncMock(return_value=None)
 
     with patch("aiohttp.ClientSession.delete", return_value=mock_response):
         await http_client.delete("/api/media/req-1")
 
-    mock_response.read.assert_awaited()
+    mock_response.json.assert_awaited()
 
 
 @pytest.mark.asyncio

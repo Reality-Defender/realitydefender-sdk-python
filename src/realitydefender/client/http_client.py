@@ -154,12 +154,10 @@ class HttpClient:
 
         try:
             async with session.delete(url) as response:
-                if response.status in (400, 401, 404) or response.status > 400:
-                    await self._handle_response(response)
+                if response.status == 204:
+                    await response.read()
                     return
-                await response.read()
-        except RealityDefenderError:
-            raise
+                await self._handle_response(response)
         except aiohttp.ClientError as e:
             raise RealityDefenderError(f"HTTP request failed: {str(e)}", "server_error")
 
