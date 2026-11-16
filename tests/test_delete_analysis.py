@@ -1,4 +1,4 @@
-"""Tests for deleting a scan request."""
+"""Tests for deleting a scan analysis."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -8,7 +8,7 @@ from realitydefender import RealityDefender, RealityDefenderError
 
 
 @pytest.mark.asyncio
-async def test_delete_request_calls_media_endpoint() -> None:
+async def test_delete_analysis_calls_media_endpoint() -> None:
     client = AsyncMock()
     client.delete = AsyncMock(return_value=None)
 
@@ -18,13 +18,13 @@ async def test_delete_request_calls_media_endpoint() -> None:
         sdk = RealityDefender(api_key="test-key")
         sdk.client = client
 
-    await sdk.delete_request("  req-1  ")
+    await sdk.delete_analysis("  req-1  ")
 
     client.delete.assert_called_once_with("/api/media/req-1")
 
 
 @pytest.mark.asyncio
-async def test_delete_request_requires_request_id() -> None:
+async def test_delete_analysis_requires_request_id() -> None:
     client = AsyncMock()
     client.delete = AsyncMock()
 
@@ -35,14 +35,14 @@ async def test_delete_request_requires_request_id() -> None:
         sdk.client = client
 
     with pytest.raises(RealityDefenderError) as exc_info:
-        await sdk.delete_request("   ")
+        await sdk.delete_analysis("   ")
 
     assert exc_info.value.code == "invalid_request"
     client.delete.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_delete_request_propagates_not_found() -> None:
+async def test_delete_analysis_propagates_not_found() -> None:
     client = AsyncMock()
     client.delete = AsyncMock(
         side_effect=RealityDefenderError("Resource not found", "not_found")
@@ -55,12 +55,12 @@ async def test_delete_request_propagates_not_found() -> None:
         sdk.client = client
 
     with pytest.raises(RealityDefenderError) as exc_info:
-        await sdk.delete_request("missing")
+        await sdk.delete_analysis("missing")
 
     assert exc_info.value.code == "not_found"
 
 
-def test_delete_request_sync() -> None:
+def test_delete_analysis_sync() -> None:
     client = AsyncMock()
     client.delete = AsyncMock(return_value=None)
 
@@ -69,6 +69,6 @@ def test_delete_request_sync() -> None:
     ):
         sdk = RealityDefender(api_key="k")
         sdk.client = client
-        sdk.delete_request_sync("req-sync")
+        sdk.delete_analysis_sync("req-sync")
 
     client.delete.assert_called_once_with("/api/media/req-sync")

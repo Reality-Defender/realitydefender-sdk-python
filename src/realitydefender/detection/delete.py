@@ -1,5 +1,5 @@
 """
-Delete a scan request.
+Delete a scan analysis.
 """
 
 from realitydefender.client.http_client import HttpClient
@@ -7,9 +7,9 @@ from realitydefender.core.constants import API_PATHS
 from realitydefender.errors import RealityDefenderError
 
 
-async def delete_request(client: HttpClient, request_id: str) -> None:
+async def delete_analysis(client: HttpClient, request_id: str) -> None:
     """
-    Delete a scan request (DELETE ``/api/media/{request_id}``).
+    Delete a scan analysis (DELETE ``/api/media/{request_id}``).
 
     The API responds with 204 No Content.
 
